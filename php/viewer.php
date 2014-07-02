@@ -80,8 +80,8 @@
     require_once ("core.php");
     session_start();
     if (isset($_GET["token"]) && isset($_GET["user_token"]) && isset($_GET["id"]) && isset($_GET["euid"])) {
-      if (!session_is_registered("uid")  || 
-          !session_is_registered("euid") ||
+      if (!isset($_SESSION['uid'])  ||
+          !isset($_SESSION['euid']) ||
           $_GET["id"] != $_SESSION['uid'] || $_GET["euid"] != $_SESSION['euid'] ||
           time() > $_SESSION["timeout"]) {  //if session is timed out, re-authenticate the session.
         header("Location: xlogin.php?action=view.php&" . $_SERVER["QUERY_STRING"]);

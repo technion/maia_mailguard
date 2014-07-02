@@ -85,8 +85,8 @@
     if (array_key_exists('token', $_GET) && 
         array_key_exists('id', $_GET)    && 
         array_key_exists('ts', $_GET)) {
-      if (!session_is_registered("uid")  ||
-          !session_is_registered("euid") ||
+      if (!isset($_SESSION['uid'])  ||
+          !isset($_SESSION['euid']) ||
           $_GET["id"] != $_SESSION['uid'] || $_GET["euid"] != $_SESSION['euid'] ||
           time() > $_SESSION["timeout"]) {//if session is timed out, re-authenticate the session.
         header("Location: xlogin.php?action=confirm.php&" . $_SERVER["QUERY_STRING"]);

@@ -84,7 +84,7 @@
     require_once ("smarty.php");
     
     // Remove the session file from the server.
-    if (session_is_registered("uid")) {
+    if (isset($_SESSION['uid'])) {
         session_unset();
         if (isset($_COOKIE[session_name()])) {
             setcookie(session_name(), '', time()-42000, '/');
