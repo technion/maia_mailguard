@@ -1,0 +1,42 @@
+
+.cache_submit_buttons { float: left; 
+ }
+
+.cache_submit_buttons ul { list-style-type: none; display: inline; 
+}
+
+.cache_submit_buttons p { 
+display: inline;
+float: left;
+margin: 0;
+}
+.cache_submit_buttons li { 
+float: left;
+padding: 0.2em; 
+display: inline;
+margin: 0 .5em 0 .5em; 
+vertical-align: middle;
+height: 2em;
+}
+
+.cache_submit_button_text { 
+border: 0pt none black; 
+margin: pt; 
+padding: 0pt; 
+height: 1.4em; 
+color: white; 
+position: relative;
+vertical-align: middle;
+}
+
+.cache_submit_button_image { 
+margin: 0pt; 
+height: 1.5em; 
+position: relative;
+border: 0;
+vertical-align: middle;
+}
+
+.cache_submit_buttons ul li a {
+font: 9pt sans-serif ;
+}

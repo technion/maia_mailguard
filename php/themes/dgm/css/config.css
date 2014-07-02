@@ -1,0 +1,46 @@
+
+.config_table {
+float: left;
+margin-top: 1em;
+padding: 0 2px 2px 2px;
+width: 100%;
+}
+/* Hides from IE5-mac This fixes css bug in IE \*/
+* html .config_table {height: 1%;}
+/* End hide from IE5-mac */
+
+.config_header {
+text-align: center;
+}
+
+.config_row {
+float: left;
+margin-top: 1px;
+
+}
+
+.config_row ul {
+display: inline;
+white-space: nowrap;
+}
+
+.config_row li {
+display: inline;
+}
+
+.config_key {
+float: left;
+padding: 0em 0.5em 0 0.5em;
+}
+
+.config_value {
+float: right;
+
+}
+.config_single {
+text-align: center;
+}
+
+.config_submit {
+text-align: center;
+}

@@ -1,0 +1,10 @@
+###############################################################################
+# ClamAV phishing signatures
+#
+###############################################################################
+
+# Phishing.*, HTML.Phishing.*
+header   AV_CLAM_PHISHING X-Maia-AV-Status =~ m{\b(HTML\.Phishing\.|Phishing\.)}m
+describe AV_CLAM_PHISHING ClamAV phishing signature detected
+score    AV_CLAM_PHISHING 5
+

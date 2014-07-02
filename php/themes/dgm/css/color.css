@@ -1,0 +1,95 @@
+
+
+body { 
+  color: #FFFFFF; 
+  background-color: #464679; 
+  font-size: 10pt;
+}
+
+a {
+    text-decoration: none;
+    color: #FFFFFF;
+}
+
+.panel1, .spam_report_table, .menu, .header, .intro, 
+  .quickview, .statsheader3 {
+background: #565689;   
+}
+
+.panel2, .viewmail_menu_table, .statsheader2, .cache_submit_buttons li, .cache_submit_button_text{
+background: #666699;
+}
+
+.panel3, .statsheader1 {
+background: #7676a9;
+}
+
+.inny, .suspectedham, .suspectedspam, .suspectedvirus, .suspectedattachment, .suspectedheader, .statsrowitem {
+border-top: #363669 0.05em solid;
+border-left: #363669 0.05em solid;
+border-bottom: #9696c9 0.05em solid;
+border-right: #9696c9 0.05em solid;   
+}
+
+.outy, .spam_report_table, .intro, .quickview, .statsheader1,
+.statsheader2, .statsheader3, .cache_submit_buttons li {
+border-bottom: #363669 0.05em solid;
+border-right: #363669 0.05em solid;
+border-top: #9696c9 0.05em solid;
+border-left: #9696c9 0.05em solid;   
+}
+
+.bottom_outy, .header {
+ border-bottom: #363669 0.05em solid;   
+}
+.right_outy, .menu {
+ border-right: #363669 0.05em solid;   
+}
+#protectioncontrol {
+ border: #9696c9 solid .05em;
+}
+.ham1, .suspectedham {
+background: #336600;  
+}
+
+.spam1, .suspectedspam {
+background: #cd9b4a;   
+}
+
+.virus1, .suspectedvirus {
+background: #990000;
+}
+
+.attachment1, .badattachment {
+background: #996699;  
+}
+
+.header1, .badheader {
+background: #000066;   
+}
+
+.
+.c_score {
+color: #eeeeee; 
+}
+
+.c_received {
+color: #eeeeee; 
+}
+
+.c_sender {
+color: #eeeeee;  
+}
+
+.c_subject {
+    color: #eeeeee; 
+}
+
+.c_recipient {
+color: #eeeeee; 
+}
+
+
+.cache_submit_button {
+color: #FFFFFF;
+}

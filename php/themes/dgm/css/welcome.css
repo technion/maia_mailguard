@@ -1,0 +1,78 @@
+.quickview {
+position: relative;
+
+margin: .5em;
+padding: 0em;
+}
+.quickview h2 {
+text-align: center;
+margin: 0.25em;
+}
+
+#protectioncontrol {
+width: 24em;
+margin-left: auto;
+margin-right: auto;
+text-align: center;
+height: 7em;
+}
+#protectioncontrol h2 {
+ font-size: 1em;
+ padding: 0;
+ margin: 0;   
+}
+#protectionwidget {
+position: relative;
+top: -1em;
+}
+
+#protectionwidget img {
+height: 2em;
+width: 2em;
+}
+  
+.protectionbump {
+position: relative;
+top: -1em;
+margin-left: auto;
+margin-right: auto;
+}
+
+.intro {
+position: relative;
+right: 0;
+font-size: small;
+margin-bottom: 0em;
+margin-top: 5em;
+}
+
+
+.suspectedspam {
+padding: 0.5em;
+margin: 0.25em;
+font-size  : 12px;
+}
+
+.suspectedham {
+padding: 0.5em;
+margin: 0.25em;
+font-size  : 12px;
+}
+
+.suspectedvirus {
+padding: 0.5em;
+margin: 0.25em;
+font-size  : 12px;
+}
+
+.badattachment {
+padding: 0.5em;
+margin: 0.25em;
+font-size  : 12px;
+}
+
+.badheader {
+padding: 0.5em;
+margin: 0.25em;
+font-size  : 12px;
+}

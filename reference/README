@@ -1,0 +1,6 @@
+This subdirectory contains the complete amavisd-new 2.2.1 distribution in
+its original form, as required by the GNU Public License, as well as the
+source code patch (amavisd-maia.patch) which was used to modify amavisd
+for Maia Mailguard's purposes.  These files are provided solely for your
+reference, and are not required for the installation of Maia Mailguard.
+

@@ -1,0 +1,117 @@
+
+.clearfix:after {
+    content: "."; 
+    display: block; 
+    height: 0; 
+    clear: both; 
+    visibility: hidden;
+}
+
+/* Hides from IE-mac \*/
+* html .clearfix {height: 1%;}
+/* End hide from IE-mac */
+
+
+.edit_icon {
+text-decoration: none;
+border: none;
+width: 1.0em;
+}
+p, address {
+margin-left: 0.5em;
+margin-right: 0.5em;
+}
+
+#logo {
+ height: 100%;
+ width: 100%;
+}
+
+
+#checkcontrol {
+cursor: pointer;
+text-decoration: underline;
+}
+
+
+
+.menu {
+position: relative;
+margin-top: -1px;
+padding: 0em;
+text-align: center;
+}
+
+.menuitem img {
+height: 25%;
+width: 25%;
+}
+.menuitem {
+margin-bottom: 0.5em;
+}
+
+.poweredby {
+height: 100%;
+width: 100%;
+}
+#welcome h1 {
+text-align: center;
+}
+
+#icon {
+height: 2em;
+width: 2em;     
+}
+
+.smallicon {
+ height: 1.5em;
+width: 1.5em;   
+}
+/*
+#welcomestats {
+position: absolute;
+margin-top: 1em;
+}*/
+
+
+
+/* cache listing background colors */
+.hambody {
+    background : #DDDDB7;
+    font-size  : 14px;
+    font-weight: normal;
+    color      : #000000;
+}
+.suspected_spambody {
+    background : #FFCCCC;
+    font-size  : 14px;
+    font-weight: normal;
+    color      : #000000;
+}
+
+.virusbody {
+    background : #CCFFCC;
+    font-size  : 14px;
+    font-weight: normal;
+    color      : #000000;
+}
+
+.banned_filebody {
+    background : #D6D1E9;
+    font-size  : 14px;
+    font-weight: normal;
+    color      : #000000;
+}
+
+.bad_headerbody {
+    background : #FFCC79;
+    font-size  : 14px;
+    font-weight: normal;
+    color      : #000000;
+}
+
+
+
+
+
+

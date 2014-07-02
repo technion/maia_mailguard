@@ -1,0 +1,99 @@
+###############################################################################
+# Sanesecurity phishing, scam, and spam signatures for ClamAV
+#
+# See http://sanesecurity.com/usage.htm for details about how to use
+# Sanesecurity's third-party signatures with ClamAV.  Once installed,
+# Maia can use the SpamAssassin rules in this file to convert those
+# "virus" hits to spam scores.
+#
+# Note: Sanesecurity.Malware.*, Sanesecurity.Rogue.*, and Sanesecurity.Doc.*
+#       are intentionally omitted from this list, as they suggest that the
+#       email contains malware that should be quarantined as such, and not
+#       as spam.
+###############################################################################
+
+# Sanesecurity.Junk.*
+header   AV_SS_JUNK X-Maia-AV-Status =~ m{\bSanesecurity\.Junk\.}m
+describe AV_SS_JUNK Sanesecurity junk mail signature detected
+score    AV_SS_JUNK 5
+
+# Sanesecurity.Lott.*
+header   AV_SS_LOTT X-Maia-AV-Status =~ m{\bSanesecurity\.Lott\.}m
+describe AV_SS_LOTT Sanesecurity lottery scam signature detected
+score    AV_SS_LOTT 5
+
+# Sanesecurity.PhishingTestSig
+header   AV_SS_PHISHTEST X-Maia-AV-Status =~ m{\bSanesecurity\.PhishingTestSig}m
+describe AV_SS_PHISHTEST Sanesecurity phishing test signature detected
+score    AV_SS_PHISHTEST 0.001
+
+# Sanesecurity.Phishing.*
+header   AV_SS_PHISHING X-Maia-AV-Status =~ m{\bSanesecurity\.Phishing\.}m
+describe AV_SS_PHISHING Sanesecurity phishing scam signature detected
+score    AV_SS_PHISHING 5
+
+# Sanesecurity.Casino.*
+header   AV_SS_CASINO X-Maia-AV-Status =~ m{\bSanesecurity\.Casino\.}m
+describe AV_SS_CASINO Sanesecurity casino spam signature detected
+score    AV_SS_CASINO 5
+
+# Sanesecurity.Bou.*
+header   AV_SS_BOU X-Maia-AV-Status =~ m{\bSanesecurity\.Bou\.}m
+describe AV_SS_BOU Sanesecurity spam signature detected
+score    AV_SS_BOU 5
+
+# SaneSecurity.Scam.*, Sanesecurity.ScamL.*, Sanesecurity.Scam4.*
+header   AV_SS_SCAM X-Maia-AV-Status =~ m{\bSanesecurity\.(Scam|Scam4|ScamL)\.}m
+describe AV_SS_SCAM Sanesecurity scam signature detected
+score    AV_SS_SCAM 5
+
+# Sanesecurity.Cred.*
+header   AV_SS_CRED X-Maia-AV-Status =~ m{\bSanesecurity\.Cred\.}m
+describe AV_SS_CRED Sanesecurity credit scam signature detected
+score    AV_SS_CRED 5
+
+# Sanesecurity.Job.*
+header   AV_SS_JOB X-Maia-AV-Status =~ m{\bSanesecurity\.Job\.}m
+describe AV_SS_JOB Sanesecurity job scam signature detected
+score    AV_SS_JOB 5
+
+# Sanesecurity.Stk.*
+header   AV_SS_STK X-Maia-AV-Status =~ m{\bSanesecurity\.Stk\.}m
+describe AV_SS_STK Sanesecurity stock scam signature detected
+score    AV_SS_STK 5
+
+# Sanesecurity.Loan.*
+header   AV_SS_LOAN X-Maia-AV-Status =~ m{\bSanesecurity\.Loan\.}m
+describe AV_SS_LOAN Sanesecurity loan scam signature detected
+score    AV_SS_LOAN 5
+
+# Sanesecurity.Spam.*, Sanesecurity.SpamL.*, Sanesecurity.Spam4.*
+header   AV_SS_SPAM X-Maia-AV-Status =~ m{\bSanesecurity\.(Spam|Spam4|SpamL)\.}m
+describe AV_SS_SPAM Sanesecurity spam signature detected
+score    AV_SS_SPAM 5
+
+# Sanesecurity.Porn.*
+header   AV_SS_PORN X-Maia-AV-Status =~ m{\bSanesecurity\.Porn\.}m
+describe AV_SS_PORN Sanesecurity porn signature detected
+score    AV_SS_PORN 5
+
+# Sanesecurity.Hdr.*
+header   AV_SS_HDR X-Maia-AV-Status =~ m{\bSanesecurity\.Hdr\.}m
+describe AV_SS_HDR Sanesecurity header forgery signature detected
+score    AV_SS_HDR 5
+
+# Sanesecurity.Dipl.*
+header   AV_SS_DIPL X-Maia-AV-Status =~ m{\bSanesecurity\.Dipl\.}m
+describe AV_SS_DIPL Sanesecurity diploma scam signature detected
+score    AV_SS_DIPL 5
+
+# Sanesecurity.SpamImg.*, Sanesecurity.Img.*, Sanesecurity.Img0.*
+header   AV_SS_SPAMIMG X-Maia-AV-Status =~ m{\bSanesecurity\.(SpamImg|Img|Img0)\.}m
+describe AV_SS_SPAMIMG Sanesecurity image spam signature detected
+score    AV_SS_SPAMIMG 5
+
+# Sanesecurity.Spear.*
+header   AV_SS_SPEAR X-Maia-AV-Status =~ m{\bSanesecurity\.Spear\.}m
+describe AV_SS_SPEAR Sanesecurity spear-phishing signature detected
+score    AV_SS_SPEAR 5
+

@@ -1,0 +1,127 @@
+.sortimage {
+    text-decoration: none;
+    border: none;
+    margin: 0;
+    padding: 0;
+    height: 1em;
+    width: 1em;
+}
+
+.cache_submit_button{
+border: 0em;
+cursor: pointer;
+}
+.cache_submit_button img {
+height: 1.5em;
+width:1.5em;
+}
+
+.cachecheck {
+float: left;
+
+}
+
+
+.cache_sort {
+clear: both;
+padding: 0.3em 0 0 0;
+margin: 0;   
+height: 1.5em;
+}
+
+
+.cachesort {
+float: right;
+}
+
+.cachesort ul {
+display: inline; 
+margin-left: 10em;
+padding: 0; margin: 0;
+  list-style: none; 
+}
+
+.cachesort li {
+display: inline; 
+margin: 0em .1em;
+padding: 0;
+height: 0;
+width: 0;
+} 
+
+.cachesort li a {
+padding: 0em 0.2em; 
+text-decoration: none;
+}
+
+
+.cache-table {
+  position: relative;
+}
+
+.cache_row {
+    position: relative;
+    margin-top: 0.01em;
+ 
+ height: 2.8em;   
+}
+
+.cache_score {
+position: absolute;
+margin: 0em 2em;
+}
+.cache_received {
+position: absolute;  
+margin: 0em 23em; 
+width: 12em;
+}
+.cache_sender {
+position: absolute;
+margin: 1.5em 6em;  
+}
+.cache_recipient {
+position: absolute;
+margin: 1.5em 19em;   
+width: 17.5em;
+}
+.cache_subject {
+position: absolute;
+margin: 0em 4em;
+width: 19em;   
+}
+
+.cache_ham {
+    display: none;
+position: absolute;
+margin: 0em 13em;   
+width: 5em;
+background: #DDDDB7;
+}
+.cache_spam {
+display: none;
+position: absolute;
+margin: 0em 15em; 
+/*width: 10em;*/  
+ background : #FFCCCC;
+}
+.cache_delete {
+display: none;
+position: absolute;
+margin: 0em 25em;
+width: 5em;   
+}
+
+.cache_select {
+position: absolute;
+margin: 0em 0em; 
+}
+
+
+#cache-help {
+position: absolute;
+top: 0;
+right: 0;
+border: solid 1px black; 
+width: 10em;
+} 
+

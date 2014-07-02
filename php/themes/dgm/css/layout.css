@@ -1,0 +1,66 @@
+body {
+padding: 0;
+margin: 0;
+}
+.header {
+position: relative;
+width: 100%;
+top: 0;
+}
+.headerleft {
+float: left;
+width: 12%;
+}
+/*  Hide from IE/MAC \*/
+* .headerleft {
+margin: -3px;
+}
+/* unhide from IE/MAC */
+
+.headercenter {
+float: right;
+width: 68%;
+}
+
+
+.headerright {
+float: right;
+width: 20%;
+}
+
+#leftmiddle {
+width: 80%;
+float: left;
+padding: 0;
+margin: 0;
+
+}
+
+
+#right {
+float: right;
+width: 20%;
+padding: 0;
+margin: 0;
+}
+
+
+#center {
+float: right;
+width: 85%;
+}
+
+#left {
+float: left;
+width: 15%;
+}
+
+.clear {
+clear: both;
+}
+#footer {
+text-align: center;
+font-size: 10px;
+}
+
+

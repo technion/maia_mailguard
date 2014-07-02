@@ -1,0 +1,55 @@
+.spam_report_table {
+clear: both;
+}
+
+.spam_report_row {
+clear: both;
+}
+
+.spam_report_header {
+float: left;
+}
+.spam_report_score {
+float: left;
+width: 5em;
+}
+
+.spam_report_name {
+float: left;
+
+}
+
+.spam_report_description {
+float: left;
+
+}
+.viewmail_row_to {
+clear: both;
+float: right;
+}
+.viewmail_menu_table {
+clear: both;
+
+}
+
+.viewmail_menu_row {
+clear: both;
+}
+
+.viewmail_menu_row button {
+}
+
+.viewmail_container {
+font-size: 12px;
+}
+
+
+.viewmail_table {
+
+
+}
+.viewmail_body {
+width: 100%;
+height: 50em;
+overflow: auto;
+}
