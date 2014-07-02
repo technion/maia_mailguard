@@ -141,7 +141,7 @@ fatal("Can't read template file: $!") if !(-r "$template_dir/digest.tpl");
             'virus' => "received_date DESC",
             'attachment' => "received_date DESC",
             'header'  => "received_date DESC",
-) if !defined(%sort);
+) if !(%sort);
 $titles = { 'spam'        =>  "Spam Quarantine",
             'virus'       =>  "Virus Quarantine",
             'attachment' =>  "Banned File Attachments",
