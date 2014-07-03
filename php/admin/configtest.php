@@ -129,8 +129,6 @@
 <table border="0" cellspacing="2" cellpadding="2" width="100%">
 <tr><td bgcolor="#CCCCCC" align="center" colspan="2">
 <h1>Maia Mailguard Configuration Tester</h1><br>
-<h4>(Note: some distros do not update pear's registry correctly and these tests may appear inaccurate.<br>
-	Please contribute to <a href="http://www.maiamailguard.com/maia/ticket/306">this ticket</a> if you have any insight!)</h4>
 </td></tr>
 <?php
 
