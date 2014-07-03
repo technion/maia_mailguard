@@ -161,6 +161,10 @@
         $username = $new_email;
 
         $new_user_id = add_user($username, $new_email);
+        if($new_user_id === -1)
+        {
+		$smarty->assign("error", "This superuser account already exists. It must be removed from the database before recreating.");
+        }
 
         // Generate a random password and assign it to the new user
         list($password, $digest) = generate_random_password();

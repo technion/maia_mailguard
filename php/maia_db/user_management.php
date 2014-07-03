@@ -213,6 +213,7 @@
                  $domain_defaults["truncate_email"]));
         if (PEAR::isError($res)) {
             $logger->err("Can't insert new user: ". $res->getMessage());
+            return -1;
         }
         // Get the UID of this new record
         $select = "SELECT id FROM maia_users WHERE user_name = ?";
