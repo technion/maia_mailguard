@@ -74,7 +74,7 @@
      *
      */
 
-    require_once ("../config.php");
+    
 
 
 
@@ -133,6 +133,12 @@
 	Please contribute to <a href="http://www.maiamailguard.com/maia/ticket/306">this ticket</a> if you have any insight!)</h4>
 </td></tr>
 <?php
+
+    if(!@include_once("../config.php"))
+    {
+        print_row('config.php', 'config.php file not setup', ERROR);
+    }
+
     $status = OK;
 
     //smarty compile dirs file permissions.
