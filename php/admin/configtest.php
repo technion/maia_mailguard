@@ -317,11 +317,11 @@
        $status = ERROR;
     } else {
        // include_once ("PEAR/Remote.php");      // PEAR::Remote
-        include_once ("PEAR/Registry.php");    // PEAR::Registry
+        include_once ("PEAR/Config.php");    // PEAR::Registry
 
     	$have_pear = true;
     	$pear = new PEAR_Config();
-        $pear_reg = new PEAR_Registry($pear->get('php_dir'));
+        $pear_reg = $pear->getRegistry();
         $pear_info = $pear_reg->packageInfo("PEAR");
         $pear_list = $pear_reg->listPackages();
         $pear_version = is_array($pear_info["version"])?$pear_info["version"]["release"]:$pear_info["version"];
