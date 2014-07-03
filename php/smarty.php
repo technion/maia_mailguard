@@ -80,14 +80,14 @@
     } else {
       require_once ("Smarty/Smarty.class.php");
     }
-    require_once ("./locale/$display_language/db.php");
+    require_once (dirname(__FILE__)."/locale/$display_language/db.php");
     // define local smarty-class
     class ThemeSmarty extends Smarty {
         var $_basedir = '';
         
         function ThemeSmarty($theme = 'default', $spath = '') {
             parent::__construct();
-            $this->_basedir = 'themes/'.$theme.'/';
+            $this->_basedir = dirname(__FILE__).'/themes/'.$theme.'/';
             $this->template_dir = $this->_basedir.'templates/';
             $this->compile_dir = $this->_basedir.'compiled/';
             $this->config_dir = $this->_basedir.'config';
@@ -98,7 +98,7 @@
             } else {
                 $this->plugins_dir = array($this->_basedir.'code/', "Smarty/plugins");
             }
-            $this->assign('template_dir', 'themes/'.$theme.'/');
+            $this->assign('template_dir', '/themes/'.$theme.'/');
         }
         
         function getBaseDir() {
@@ -165,11 +165,11 @@
         $path = "default";
     }
     
-    if (! (is_dir("themes/$path") && is_dir("themes/$path/templates") && is_readable("themes/$path/templates"))) {
+    if (! (is_dir(dirname(__FILE__)."/themes/$path") && is_dir(dirname(__FILE__)."/themes/$path/templates") && is_readable(dirname(__FILE__)."/themes/$path/templates"))) {
         exit($lang['error_themes']);
     }
 
-    if(! is_writable("themes/$path/compiled")) {
+    if(! is_writable(dirname(__FILE__)."/themes/$path/compiled")) {
       exit($lang["error_permissions"]);
     }
 
@@ -186,7 +186,7 @@
        require_once ($include);
     }
     
-    $include = "./locale/$display_language/local.php";
+    $include = dirname(__FILE__)."/locale/$display_language/local.php";
     if (file_exists($include) && is_readable($include)) {
        require_once ($include);
     }
@@ -227,13 +227,13 @@
     $smarty->assign('super', is_superadmin($uid));
     $smarty->assign("lang", $lang);
     $smarty->assign("is_a_visitor", $is_a_visitor);  // added by JacobLeaver, response to ticket 	
-	$smarty->assign("php_errors", isset($php_errors) ? $php_errors : "");
-	// some default values, which can be overridden
-	$smarty->assign("page_css", "");
-	$smarty->assign("page_javascript", "");
-	$message = isset($message) ? $message : "";
-	$message .= isset($_SESSION["message"]) ? $_SESSION["message"] : "";
-	$_SESSION["message"] = ""; // unset message, we don't want to display more than once.
+    $smarty->assign("php_errors", isset($php_errors) ? $php_errors : "");
+    // some default values, which can be overridden
+    $smarty->assign("page_css", "");
+    $smarty->assign("page_javascript", "");
+    $message = isset($message) ? $message : "";
+    $message .= isset($_SESSION["message"]) ? $_SESSION["message"] : "";
+    $_SESSION["message"] = ""; // unset message, we don't want to display more than once.
 	                              // if page is to be redirected again, reassign it.
-	$smarty->assign("message", $message);
+    $smarty->assign("message", $message);
 ?>
