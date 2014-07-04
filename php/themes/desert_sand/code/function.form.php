@@ -87,7 +87,7 @@ function smarty_function_form($params, &$smarty)
         $_SESSION['ufid'] = $ufid;
     }
     
-    $id = $params['id'] ? $params['id'] : $params['name'];
+    $id = isset($params['id']) ? $params['id'] : $params['name'];
 
     $ret = "<form method=\"post\" action=\"${params['action']}\" name=\"${params['name']}\" id=\"${id}\">";
     $ret .= "<input type=\"hidden\" name=\"ufid\" value=\"${ufid}\">";
