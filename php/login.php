@@ -140,13 +140,13 @@
    $smarty->assign('auth_method', $auth_method);
    $smarty->assign('routing_domain', $routing_domain);
 
-   $select = "SELECT abbreviation, language_name FROM maia_languages " .
-              "WHERE abbreviation <> ? AND installed = 'Y' ORDER BY language_name ASC";
-   $sth = $dbh->query($select, array($display_language));
+   $sth = $dbh->prepare("SELECT abbreviation, language_name FROM maia_languages " .
+              "WHERE abbreviation <> ? AND installed = 'Y' ORDER BY language_name ASC");
+   $res = $sth->execute(array($display_language));
    
    $languages = array(); 
    
-   if ($sth->numrows() > 0) {
+   if ($res->numrows() > 0) {
       while ($row = $sth->fetchrow()) {
          $languages[$row["abbreviation"]] = $row["language_name"];
       }
