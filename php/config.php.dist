@@ -92,6 +92,9 @@
     $default_display_language = "en";
 
 
+    // Set your timezone here
+    date_default_timezone_set("Australia/Sydney");
+
     // Default character set is UTF-8 ... hardcoded but if you really have a good reason to change it
     // go ahead and try.
     //$html_charset = "UTF-8";
