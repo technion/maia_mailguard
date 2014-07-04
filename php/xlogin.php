@@ -138,9 +138,13 @@
        global $dbh;
 
        $email_id = 0;
-       $select = "SELECT users.id FROM users left join maia_users ON users.maia_user_id=maia_users.id WHERE maia_users.primary_email_id <> users.id and users.email = ?";
-       $sth = $dbh->query($select, array($email));
-       if ($row = $sth->fetchrow()) {
+       $sth = $dbh->prepare("SELECT users.id FROM users left join maia_users ON users.maia_user_id=maia_users.id WHERE maia_users.primary_email_id <> users.id and users.email = ?");
+       $res = $sth->execute(array($email));
+       if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+       }
+
+       if ($row = $res->fetchrow()) {
            $email_id = $row["id"];
        }
        $sth->free();

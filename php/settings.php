@@ -169,10 +169,10 @@
         $smarty->assign('address', get_email_address_by_id($primary_email_id));
 
         // get the rest of the addresses
-        $select = "SELECT id, email FROM users WHERE maia_user_id = ? AND email NOT LIKE '@%' AND id <> ?";
-        $sth = $dbh->query($select, array($euid, $primary_email_id));
+        $sth = $dbh->prepare("SELECT id, email FROM users WHERE maia_user_id = ? AND email NOT LIKE '@%' AND id <> ?");
+        $res = $sth->execute(array($euid, $primary_email_id));
         $user_addr = array();
-        while ($row = $sth->fetchRow()) {
+        while ($row = $res->fetchRow()) {
             $smarty->assign('atleastone', true);
             $user_addr[] = array(
               'addid' =>  $row["id"],
@@ -188,18 +188,18 @@
     }
 
     if ($address_id == 0 || $domain_user) {  // run this unless only displaying only the address info, ie, one non domain address
-        $select = "SELECT id, name FROM maia_themes";
-        $sth = $dbh->query($select);
+        $sth = $dbh->prepare("SELECT id, name FROM maia_themes");
+        $res = $sth->execute();
         $themes = array();
-        while ($row = $sth->fetchrow()) {
+        while ($row = $res->fetchrow()) {
             $themes[$row['id']] = $row['name'];
         }
         $smarty->assign("themes", $themes);
    
-        $select = "SELECT charts, reminders, language, spamtrap, auto_whitelist, items_per_page, quarantine_digest_interval, discard_ham, theme_id, truncate_subject, truncate_email " .
-                  "FROM maia_users WHERE maia_users.id = ?";
-        $sth = $dbh->query($select, array($euid));
-        if ($row = $sth->fetchRow()) {
+        $sth = $dbh->prepare("SELECT charts, reminders, language, spamtrap, auto_whitelist, items_per_page, quarantine_digest_interval, discard_ham, theme_id, truncate_subject, truncate_email " .
+                  "FROM maia_users WHERE maia_users.id = ?");
+        $res = $sth->execute(array($euid));
+        if ($row = $res->fetchRow()) {
             if ($row["charts"] == 'Y') {
                 $smarty->assign('ch_y_checked', "checked");
                 $smarty->assign('ch_n_checked', "");
@@ -247,13 +247,16 @@
         $smarty->assign('atleastone', false);
 
 
-        $select = "SELECT language_name, abbreviation FROM maia_languages " .
+        $sth = $dbh->prepare("SELECT language_name, abbreviation FROM maia_languages " .
                  "WHERE installed = 'Y' " .
-                 "ORDER BY language_name ASC";
-        $sth = $dbh->query($select);
+                 "ORDER BY language_name ASC");
+        $res = $sth->execute();
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
         $data = array();
         $opt_lang = array();
-        while ($row = $sth->fetchrow()) {
+        while ($row = $res->fetchrow()) {
             $opt_lang[$row['abbreviation']] = $row['language_name'];
         }
         $smarty->assign('opt_lang', $opt_lang);
@@ -267,14 +270,14 @@
             $smarty->assign('user_banned_files_checking', true);
             $smarty->assign('user_bad_header_checking', true);
     } else {  // but everyone else is subject to the system config
-            $select = "SELECT user_virus_scanning, " .
+            $sth = $dbh->prepare("SELECT user_virus_scanning, " .
                              "user_spam_filtering, " .
                              "user_banned_files_checking, " .
                              "user_bad_header_checking " .
-                             "FROM maia_config WHERE id = 0";
-            $sth = $dbh->query($select);
+                             "FROM maia_config WHERE id = 0");
+            $res = $sth->execute();
 
-            if ($row = $sth->fetchrow()) {
+            if ($row = $res->fetchrow()) {
                 $smarty->assign('user_virus_scanning', ($row["user_virus_scanning"] == 'Y'));
                 $smarty->assign('user_spam_filtering', ($row["user_spam_filtering"] == 'Y'));
                 $smarty->assign('user_banned_files_checking', ($row["user_banned_files_checking"] == 'Y'));
@@ -284,26 +287,26 @@
     }
 
     if ($domain_user) {   // the following settings apply only to domain users
-        $select = "SELECT enable_user_autocreation, routing_domain, transport " .
+        $sth = $dbh->prepare("SELECT enable_user_autocreation, routing_domain, transport " .
                    "FROM maia_domains " .
-                   "WHERE maia_domains.id = ?";
-        $sth = $dbh->query($select, array($domain_id));
-        if ($row = $sth->fetchrow()) {
+                   "WHERE maia_domains.id = ?");
+        $res = $sth->execute(array($domain_id));
+        if ($row = $res->fetchrow()) {
             $smarty->assign('enable_user_autocreation', $row["enable_user_autocreation"]);
             $smarty->assign('routing_domain', $row["routing_domain"]);
             $smarty->assign('transport', $row["transport"]);
         }
         $sth->free();
 
-        $select = "SELECT maia_users.user_name, maia_users.id " .
+        $sth = $dbh->prepare("SELECT maia_users.user_name, maia_users.id " .
               "FROM maia_users, maia_domain_admins " .
               "WHERE maia_users.id = maia_domain_admins.admin_id " .
               "AND maia_domain_admins.domain_id = ? " .
-              "ORDER BY maia_users.user_name ASC";
-        $sth = $dbh->query($select, array($domain_id));
+              "ORDER BY maia_users.user_name ASC");
+        $res = $sth->execute(array($domain_id));
         $admins = array();
-        if (($rowcount = $sth->numrows()) > 0) {
-            while ($row = $sth->fetchrow()) {
+        if (($rowcount = $res->numrows()) > 0) {
+            while ($row = $res->fetchrow()) {
                 $admins[] = array(
                     'id' => $row["id"],
                     'name' => $row["user_name"],
@@ -315,11 +318,11 @@
 
         $sth->free();
 
-        $select = "SELECT maia_users.id " .
+        $sth = $dbh->prepare("SELECT maia_users.id " .
               "FROM maia_users, maia_domain_admins " .
               "WHERE maia_users.id = maia_domain_admins.admin_id " .
-              "AND maia_domain_admins.domain_id = ?";
-        $rows = $dbh->getall($select, array($domain_id));
+              "AND maia_domain_admins.domain_id = ?");
+        $res = $sth->execute(array($domain_id));
         $id_list = "";
         foreach ($rows as $row) {
             if (!empty($id_list)) {
@@ -337,11 +340,12 @@
             $select .= "AND id NOT IN (" . $id_list . ") ";
         }
         $select .= "ORDER BY user_name ASC";
-        $sth = $dbh->query($select);
+        $sth = $dbh->prepare($select);
+        $res = $sth->execute();
 
-        if ($sth->numrows()) {
+        if ($res->numrows()) {
             $add_admins = array();
-            while ($row = $sth->fetchrow()) {
+            while ($row = $res->fetchrow()) {
                 $add_admins[] = array(
                     'id' => $row["id"],
                     'name' => $row["user_name"]
@@ -354,7 +358,7 @@
 
     // domain users or individual addresses, this is for the thresholds tab
     if ($address_id != 0) {
-        $select = "SELECT virus_lover, " .
+        $sth = $dbh->prepare("SELECT virus_lover, " .
                          "spam_lover, " .
                          "banned_files_lover, " .
                          "bad_header_lover, " .
@@ -374,10 +378,10 @@
                          "policy_id " .
                   "FROM users, policy " .
                   "WHERE users.policy_id = policy.id " .
-                  "AND users.id = ?";
+                  "AND users.id = ?");
 
-        $sth = $dbh->query($select, array($address_id));
-        if ($row = $sth->fetchRow()) {
+        $res = $sth->execute(array($address_id));
+        if ($row = $res->fetchRow()) {
             $smarty->assign('address', $row["email"]);
             $smarty->assign('policy_id', $row["policy_id"]);
             $smarty->assign('level1', $row["spam_tag_level"]);

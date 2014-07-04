@@ -118,12 +118,12 @@
     {
         global $dbh;
 
-        $select = "SELECT id FROM maia_users " .
-                  "WHERE user_name = ?";
-        $sth = $dbh->query($select, array($user_name));
+        $sth = $dbh->prepare("SELECT id FROM maia_users " .
+                  "WHERE user_name = ?");
+        $res = $sth->execute(array($user_name));
 
         // Try to look the user up by name first.
-        if ($row = $sth->fetchRow()) {
+        if ($row = $res->fetchRow()) {
 
             $uid = $row["id"];
             $sth->free();
@@ -134,8 +134,8 @@
 
             // Now try looking the user up by e-mail address,
             // in case the user was "auto-created".
-            $sth = $dbh->query($select, array($email));
-            if ($row = $sth->fetchRow()) {
+            $res = $sth->execute(array($email));
+            if ($row = $res->fetchRow()) {
                $uid = $row["id"];
                $sth->free();
 
@@ -1110,9 +1110,9 @@
         global $dbh;
 
         $email_id = 0;
-        $select = "SELECT primary_email_id FROM maia_users WHERE id = ?";
-        $sth = $dbh->query($select, array($user_id));
-        if ($row = $sth->fetchrow()) {
+        $sth = $dbh->prepare("SELECT primary_email_id FROM maia_users WHERE id = ?");
+        $res = $sth->execute(array($user_id));
+        if ($row = $res->fetchrow()) {
            $email_id = $row["primary_email_id"];
         }
         $sth->free();
@@ -1151,9 +1151,9 @@
         if (isset($_SESSION["display_language"])) {
            $display_language = trim($_SESSION["display_language"]);
         } else {
-           $select = "SELECT language FROM maia_users WHERE id = ?";
-           $sth = $dbh->query($select, array($user_id));
-           if ($row = $sth->fetchrow()) {
+           $sth = $dbh->prepare("SELECT language FROM maia_users WHERE id = ?");
+           $res = $sth->execute(array($user_id));
+           if ($row = $res->fetchrow()) {
                $display_language = strtolower($row["language"]);
                $_SESSION["display_language"] = $display_language;
            } else {

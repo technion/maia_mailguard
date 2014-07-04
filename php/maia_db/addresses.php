@@ -8,9 +8,12 @@
         global $dbh;
 
         $email = "";
-        $select = "SELECT email FROM users WHERE id = ?";
-        $sth = $dbh->query($select, array($address_id));
-        if ($row = $sth->fetchrow()) {
+        $sth = $dbh->prepare("SELECT email FROM users WHERE id = ?");
+        $res = $sth->execute(array($address_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        if ($row = $res->fetchrow()) {
             $email = $row["email"];
         }
         $sth->free();
@@ -27,9 +30,12 @@
         global $dbh;
 
         $address_id = 0;
-        $select = "SELECT id FROM users WHERE email = ?";
-        $sth = $dbh->query($select, array($address));
-        if ($row = $sth->fetchRow()) {
+        $sth = $dbh->prepare("SELECT id FROM users WHERE email = ?");
+        $res = $sth->execute(array($address));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        if ($row = $res->fetchRow()) {
             $address_id = $row["id"];
         }
         $sth->free();
@@ -47,9 +53,12 @@
         global $dbh;
 
         $owner_id = 0;
-        $select = "SELECT maia_user_id FROM users WHERE id = ?";
-        $sth = $dbh->query($select, array($address_id));
-        if ($row = $sth->fetchRow()) {
+        $sth = $dbh->prepare("SELECT maia_user_id FROM users WHERE id = ?");
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        $res = $sth->execute(array($address_id));
+        if ($row = $res->fetchRow()) {
             $owner_id = $row["maia_user_id"];
         }
         $sth->free();
@@ -67,7 +76,7 @@
 
         $policy_id = 0;
         $domain = "@" . get_domain_from_email($email);
-        $select = "SELECT virus_lover, " .
+        $sth = $dbh->prepare("SELECT virus_lover, " .
                          "spam_lover, " .
                          "banned_files_lover, " .
                          "bad_header_lover, " .
@@ -82,12 +91,12 @@
                          "spam_tag_level, " .
                          "spam_tag2_level, " .
                          "spam_kill_level " .
-                  "FROM policy WHERE policy_name = ?";
+                  "FROM policy WHERE policy_name = ?");
 
         // Try to find a domain-based set of defaults for this user,
         // based on his e-mail address.
-        $sth = $dbh->query($select, array($domain));
-        if ($row = $sth->fetchRow()) {
+        $res = $sth->execute(array($domain));
+        if ($row = $res->fetchRow()) {
             $virus_lover = $row["virus_lover"];
             $spam_lover = $row["spam_lover"];
             $bad_header_lover = $row["bad_header_lover"];
@@ -109,8 +118,8 @@
             $sth->free();
 
             // Try to find a "Default" policy (@.) to copy defaults from.
-            $sth = $dbh->query($select, array("Default"));
-            if ($row = $sth->fetchRow()) {
+            $res = $sth->execute(array("Default"));
+            if ($row = $res->fetchRow()) {
                 $virus_lover = $row["virus_lover"];
                 $spam_lover = $row["spam_lover"];
                 $bad_header_lover = $row["bad_header_lover"];

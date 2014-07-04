@@ -750,19 +750,22 @@
 
         $enable_false_negative_management = (get_config_value("enable_false_negative_management") == 'Y');
         if ($user_id > 0) {
-            $select = "SELECT total_ham_items AS total_ham, " .
+            $sth = $dbh->prepare("SELECT total_ham_items AS total_ham, " .
                              "total_spam_items AS total_spam, " .
                              "total_fp_items AS total_fp, " .
                              "total_fn_items AS total_fn " .
-                      "FROM maia_stats WHERE user_id = ?";
-            $sth = $dbh->query($select, array($user_id));
+                      "FROM maia_stats WHERE user_id = ?");
+            $res = $sth->execute(array($user_id));
         } else {
-            $select = "SELECT SUM(total_ham_items) AS total_ham, " .
+            $sth = $dbh->prepare("SELECT SUM(total_ham_items) AS total_ham, " .
                              "SUM(total_spam_items) AS total_spam, " .
                              "SUM(total_fp_items) AS total_fp, " .
                              "SUM(total_fn_items) AS total_fn " .
-                      "FROM maia_stats";
-            $sth = $dbh->query($select);
+                      "FROM maia_stats");
+            $res = $sth->execute();
+        }
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
         }
         $fp_pct = 0;
         $fn_pct = 0;
@@ -771,7 +774,7 @@
         $sensitivity_pct = 0;
         $specificity_pct = 0;
         $efficiency_pct = 0;
-        if ($row = $sth->fetchrow()) {
+        if ($row = $res->fetchrow()) {
             $ham = $row["total_ham"];
             $spam = $row["total_spam"];
             $fp = $row["total_fp"];

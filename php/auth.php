@@ -358,14 +358,18 @@
 
         $email = "";
         $testpass = md5($pass);
-        $select = "SELECT users.email " .
+        $sth = $dbh->prepare("SELECT users.email " .
                   "FROM users, maia_users " .
                   "WHERE users.id = maia_users.primary_email_id " .
                   "AND maia_users.user_name = ? " .
-                  "AND maia_users.password = ?";
+                  "AND maia_users.password = ?");
 
-        $sth = $dbh->query($select, array($user, $testpass));
-        if ($row = $sth->fetchrow()) {
+        $res = $sth->execute(array($user, $testpass));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+
+        if ($row = $res->fetchrow()) {
             $email = $row["email"];
         }
         $sth->free();

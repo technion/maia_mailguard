@@ -162,18 +162,18 @@
     exit;
 
 function get_user_wb_rows($dbh, $user_id) {
-    $select = "SELECT mailaddr.email, mailaddr.id, wblist.wb " .
+    $sth = $dbh->prepare("SELECT mailaddr.email, mailaddr.id, wblist.wb " .
               "FROM mailaddr, wblist " .
               "WHERE mailaddr.id = wblist.sid " .
               "AND wblist.rid = ? " .
-              "ORDER BY mailaddr.email ASC";
+              "ORDER BY mailaddr.email ASC");
 
-    $sth = $dbh->query($select, array($user_id));
+    $res = $sth->execute(array($user_id));
     $rows = array();
 
-    if ($sth->numRows() > 0) {
+    if ($res->numRows() > 0) {
       $count = 0;
-        while ($row = $sth->fetchRow())
+        while ($row = $res->fetchRow())
         {
           $rows[$count]['email'] = $row['email'];
           $rows[$count]['id'] = $row['id'];
