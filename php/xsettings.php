@@ -531,22 +531,25 @@
         }elseif ($new_password != $confirm_new_password) {
             $message = $lang['text_password_mismatch'];
         } else {
-            $select = "SELECT id FROM maia_users WHERE user_name = ?";
-            $sth = $dbh->query($select, array($new_login));
-            if ($row = $sth->fetchrow()) {
+            $sth = $dbh->prepare("SELECT id FROM maia_users WHERE user_name = ?");
+            $res = $sth->execute(array($new_login));
+            if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+            }
+            if ($row = $res->fetchrow()) {
                 if ($row["id"] != $euid) {
                     $message = $lang['text_login_name_exists'];
                 } else {
-                    $update = "UPDATE maia_users SET password = ? WHERE id = ?";
-                    $dbh->query($update, array(md5($new_password), $euid));
+                    $sthupdate = $dbh->prepare("UPDATE maia_users SET password = ? WHERE id = ?");
+                    $sthupdate->execute(array(md5($new_password), $euid));
                     $message = $lang['text_password_updated'];
                 }
             } else {
                 if ($new_login[0] == "@") {
                     $message = $lang['text_login_name_not_allowed'];
                 } else {
-                    $update = "UPDATE maia_users SET user_name = ?, password = ? WHERE id = ?";
-                    $dbh->query($update, array($new_login, md5($new_password), $euid));
+                    $isthupdate = $dbh->prepare("UPDATE maia_users SET user_name = ?, password = ? WHERE id = ?");
+                    $sthupdate->execute(array($new_login, md5($new_password), $euid));
                     $message = $lang['text_credentials_updated'];
                 }
             }
