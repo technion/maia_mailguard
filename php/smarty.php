@@ -152,13 +152,16 @@
         $admin = false;
     }
     
-    $select = "SELECT maia_users.id, user_name, maia_themes.path ".
+    $sth = $dbh->prepare("SELECT maia_users.id, user_name, maia_themes.path ".
               "FROM maia_users ".
               "LEFT JOIN maia_themes ON maia_users.theme_id = maia_themes.id ".
               "WHERE maia_users.id = ? OR maia_users.user_name = '@.' ".
-              "ORDER BY maia_users.id DESC";
-    $sth = $dbh->query($select, array($uid));
-    if ($row = $sth->fetchrow()) {
+              "ORDER BY maia_users.id DESC");
+    $res = $sth->execute(array($uid));
+    if (PEAR::isError($sth)) {
+        die($sth->getMessage());
+    }
+    if ($row = $res->fetchrow()) {
         $path = $row['path'];
     
     } else { // this really should not be reachable

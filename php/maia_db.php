@@ -75,7 +75,7 @@
      */
 
     require_once ("core.php");
-    require_once ("DB.php");     // Pear::DB
+    require_once ("MDB2.php");     // Pear::DB
     require_once ("mailtools.php");
     require_once ("smtp.php");
     if (extension_loaded('mcrypt')) {
@@ -88,11 +88,11 @@
     }
 
     // Establish a database connection.
-    $dbh = DB::connect($maia_sql_dsn, $maia_sql_connect_options);
-    if (DB::isError($dbh)) {
+    $dbh = MDB2::connect($maia_sql_dsn, $maia_sql_connect_options);
+    if (MDB2::isError($dbh)) {
         die($lang['error_connect'] . $dbh->getMessage());
     }
-    $dbh->setFetchMode(DB_FETCHMODE_ASSOC);
+    $dbh->setFetchMode(MDB2_FETCHMODE_ASSOC);
 
     /* include files that were once in this file */
     require_once ("maia_db/admin.php");

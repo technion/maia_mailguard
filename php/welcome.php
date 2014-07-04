@@ -200,23 +200,23 @@
     $maxitemid = max($maxspamid, $maxvirusid, $maxbannedid, $maxheaderid, $maxhamid);
     
     // find current protection level
-   $query = "SELECT DISTINCT virus_lover, spam_lover, banned_files_lover, " . 
+   $sth = $dbh->prepare("SELECT DISTINCT virus_lover, spam_lover, banned_files_lover, " . 
                "bad_header_lover, bypass_virus_checks, bypass_spam_checks, bypass_banned_checks, ".
                "bypass_header_checks, discard_viruses, discard_spam, discard_banned_files, ".
 			   "discard_bad_headers, spam_modifies_subj, spam_tag_level, ".
                "spam_tag2_level, spam_kill_level " .
              "FROM users LEFT JOIN policy ON users.policy_id=policy.id ".
-             "WHERE users.maia_user_id = ?"; 
-    $sth = $dbh->query($query, array($euid));
+             "WHERE users.maia_user_id = ?"); 
+    $res = $sth->execute(array($euid));
     
     
     
     
     
-    if ($sth->numRows() > 1) { 
+    if ($res->numRows() > 1) { 
    	$protection_mode = "custom";
-    } elseif ($sth->numrows() ==1) {
-        $result = $sth->fetchrow();	
+    } elseif ($res->numrows() ==1) {
+        $result = $res->fetchrow();	
     	if (implode(',',$result) == implode(',',$protection['off'])){
     		$protection_mode = 'off';		
     	} elseif (implode(',',$result) == implode(',',$protection['low'])){

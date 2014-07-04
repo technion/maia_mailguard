@@ -21,7 +21,7 @@
 
         if (!empty($token)) {
 
-            $select = "SELECT MIN(received_date) AS mindate, " .
+            $sth = $dbh->prepare("SELECT MIN(received_date) AS mindate, " .
                              "MAX(received_date) AS maxdate, " .
                              "MIN(score) AS minscore, " .
                              "MAX(score) AS maxscore, " .
@@ -33,19 +33,19 @@
                       "FROM maia_mail, maia_mail_recipients " .
                       "WHERE maia_mail.id = maia_mail_recipients.mail_id " .
                       $token .
-                      "AND maia_mail_recipients.recipient_id = ?";
-            $sth = $dbh->query($select, array($user_id));
-            sql_check($sth, "update_mail_stats", $select);
+                      "AND maia_mail_recipients.recipient_id = ?");
+            $res = $sth->execute(array($user_id));
+            sql_check($sth, "update_mail_stats", $res);
 
-            if ($row = $sth->fetchrow()) {
+            if ($row = $res->fetchrow()) {
 
-              $select = "SELECT user_id FROM maia_stats WHERE user_id = ?";
-              $sth2 = $dbh->query($select, array($user_id));
-              sql_check($sth2, "update_mail_stats", $select);
+              $sth2 = $dbh->prepare("SELECT user_id FROM maia_stats WHERE user_id = ?");
+              $res2 = $sth2->execute(array($user_id));
+              sql_check($sth2, "update_mail_stats", $sth2);
 
               // User already has a stats record, update it.
-              if ($sth2->fetchrow()) {
-                    $update = "UPDATE maia_stats SET oldest_" . $type . "_date = ?, " .
+              if ($res2->fetchrow()) {
+                    $updatesth = $dbh->prepare("UPDATE maia_stats SET oldest_" . $type . "_date = ?, " .
                                                     "newest_" . $type . "_date = ?, " .
                                                     "lowest_" . $type . "_score = ?, " .
                                                     "highest_" . $type . "_score = ?, " .
@@ -54,8 +54,8 @@
                                                     "largest_" . $type . "_size = ?, " .
                                                     "total_" . $type . "_size = ?, " .
                                                     "total_" . $type . "_items = ? " .
-                              "WHERE user_id = ?";
-                    $res = $dbh->query($update, array($row["mindate"],
+                              "WHERE user_id = ?");
+                    $res = $updatesth->execute(array($row["mindate"],
                                                $row["maxdate"],
                                                (isset($row["minscore"]) ? $row["minscore"] : 0),
                                                (isset($row["maxscore"]) ? $row["maxscore"] : 0),
@@ -65,11 +65,11 @@
                                                (isset($row["totalsize"]) ? $row["totalsize"] : 0),
                                                (isset($row["items"]) ? $row["items"] : 0),
                                                $user_id));
-                    sql_check($res, "update_mail_stats", $update);
+                    sql_check($res, "update_mail_stats", $updatesth);
 
                 // User doesn't have a stats record yet, create a new one for him.
                 } else {
-                    $insert = "INSERT INTO maia_stats (oldest_" . $type . "_date, " .
+                    $insertsth = $dbh->prepare("INSERT INTO maia_stats (oldest_" . $type . "_date, " .
                                                       "newest_" . $type . "_date, " .
                                                       "lowest_" . $type . "_score, " .
                                                       "highest_" . $type . "_score, " .
@@ -79,8 +79,8 @@
                                                       "total_" . $type . "_size, " .
                                                       "total_" . $type . "_items, " .
                                                       "user_id) " .
-                              "VALUES (?,?,?,?,?,?,?,?,?,?)";
-                    $res = $dbh->query($insert, array($row["mindate"],
+                              "VALUES (?,?,?,?,?,?,?,?,?,?)");
+                    $res = $insertsth->execute( array($row["mindate"],
                                                $row["maxdate"],
                                                (isset($row["minscore"]) ? $row["minscore"] : 0),
                                                (isset($row["maxscore"]) ? $row["maxscore"] : 0),
@@ -244,16 +244,16 @@
                           // login.php, and that could be an expensive query.
         }
         global $dbh;
-        $select = "SELECT type,
+        $sth = $dbh->prepare( "SELECT type,
                           COUNT(mail_id) AS qcount,
                           MAX(mail_id) AS maxid
                    FROM maia_mail_recipients
                    WHERE recipient_id = ?
-                   GROUP BY type";
-        $sth = $dbh->query($select, $euid);
+                   GROUP BY type");
+        $res = $sth->execute(array($euid));
         static $results = array();
         if (empty($results)) {  // cached if called multiple times in one page load.
-            while ($row = $sth->fetchRow()) {
+            while ($row = $res->fetchRow()) {
                 $results[$row['type']] = array('count' => $row['qcount'],
                                                'max'   => $row['maxid']);
             }
@@ -638,15 +638,21 @@
         global $dbh;
 
         if ($user_id > 0) {
-            $select = "SELECT total_" . $type . "_items AS count FROM maia_stats WHERE user_id = ?";
-            $sth = $dbh->query($select, array($user_id));
+            $sth = $dbh->prepare("SELECT total_" . $type . "_items AS count FROM maia_stats WHERE user_id = ?");
+            $res = $sth->execute(array($user_id));
+            if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+            }
         } else {
-            $select = "SELECT SUM(total_" . $type . "_items) AS count FROM maia_stats";
-            $sth = $dbh->query($select);
+            $sth = $dbh->prepare("SELECT SUM(total_" . $type . "_items) AS count FROM maia_stats");
+            $res = $sth->execute();
+            if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+            }
         }
 
         $count = 0;
-        if ($row = $sth->fetchrow()) {
+        if ($row = $res->fetchRow()) {
             $count = $row["count"];
         }
         $sth->free();

@@ -75,7 +75,7 @@
      */
 
     require_once ("core.php");
-    require_once ("DB.php");  // PEAR::DB
+    require_once ("MDB2.php");  // PEAR::DB
     require_once ("mailtools.php");
     require_once ("maia_db.php");
 
@@ -309,11 +309,11 @@
           $auth_sql_connect_array = array();
         }
 
-        $auth_dbh = DB::connect($auth_sql_dsn, $auth_sql_connect_array);
-        if (DB::isError($auth_dbh)) {
+        $auth_dbh = MDB2::connect($auth_sql_dsn, $auth_sql_connect_array);
+        if (MDB2::isError($auth_dbh)) {
             return $auth_dbh; //return error for xlogin to process
         }
-        $auth_dbh->setFetchMode(DB_FETCHMODE_ASSOC);
+        $auth_dbh->setFetchMode(MDB2_FETCHMODE_ASSOC);
 
         $select = "SELECT " . $auth_sql_password_column . ", " . $auth_sql_email_column . " FROM " .
                   $auth_sql_table . " WHERE " . $auth_sql_username_column . " = ?";

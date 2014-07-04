@@ -94,9 +94,12 @@
         global $dbh;
 
         $user_name = "Unknown";
-        $select = "SELECT user_name FROM maia_users WHERE id = ?";
-        $sth = $dbh->query($select, array($uid));
-        if ($row = $sth->fetchRow()) {
+        $sth = $dbh->prepare("SELECT user_name FROM maia_users WHERE id = ?");
+        $res = $sth->execute(array($uid));
+        if (PEAR::isError($sth)) { 
+            die($sth->getMessage()); 
+	}
+        if ($row = $res->fetchRow()) {
             $user_name = $row["user_name"];
         }
         $sth->free();
@@ -166,11 +169,14 @@
     {
         global $dbh;
 
-        $select = "SELECT user_level FROM maia_users " .
-                  "WHERE id = ?";
-        $sth = $dbh->query($select, array($uid));
+        $sth = $dbh->prepare( "SELECT user_level FROM maia_users " .
+                  "WHERE id = ?");
+        $res = $sth->execute(array($uid));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
         $user_level = "U";
-        if ($row = $sth->fetchRow()) {
+        if ($row = $res->fetchRow()) {
             $user_level = $row["user_level"];
         }
         $sth->free();
