@@ -414,13 +414,6 @@
     }
 
     print "\n";
-    print <<EOL;
-    NOTE: When upgrading Perl to version 5.10 or planning to do so, please
-    do not forget to add a missing /m flag to regular expressions in your existing 
-    AV entries, as suggested in the example file maiad.conf.dist. Perl 5.8 does
-    not mind missing /m flags, but with perl 5.10 the results from a virus scanner 
-    may no longer be properly recognized.
-EOL
     exit;
 
 
