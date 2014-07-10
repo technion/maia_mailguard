@@ -387,31 +387,31 @@
   }
 
 
-    // PEAR::DB
+    // PEAR::MDB2
     if ($have_pear) {
-        if (!in_array("db", $pear_list)) {
+        if (!in_array("mdb2", $pear_list)) {
             $result = "Not installed.  This PHP extension is required in order to provide " .
-                      "database abstraction.  Use <b>pear install DB</b> to install this.";
+                      "database abstraction.  Use <b>pear install MDB2</b> to install this.";
             $status = ERROR;
         } else {
-          $db_info = $pear_reg->packageInfo("DB");
+          $db_info = $pear_reg->packageInfo("MDB2");
           $pathArray = explode( PATH_SEPARATOR, get_include_path() );
           $pathArray = array_map('strip_tailing_slash', $pathArray);
-          $db_path = dirname($db_info['filelist']['DB.php']['installed_as']);
+          $db_path = dirname($db_info['filelist']['MDB2.php']['installed_as']);
           if (in_array($db_path, $pathArray)) {
-            include_once ("DB.php");               // PEAR::DB
-            $test_dbh = DB::connect($maia_sql_dsn);
-            if (DB::isError($test_dbh)) {
-                $result = "Could not connect to database.  Check the \$maia_sql_dsn setting in config.php.";
+            include_once ("MDB2.php");               // PEAR::MDB2
+            $test_dbh = MDB2::connect($maia_sql_dsn);
+            if (MDB2::isError($test_dbh)) {
+                $result = "Could not connect to database.  Check the $maia_sql_dsn setting in config.php.";
                   $status = ERROR;
             } else {
                 $result = $db_version = is_array($db_info["version"])?$db_info["version"]["release"]:$db_info["version"];
-                $result .= " DB.php installed as: " . $db_info['filelist']['DB.php']['installed_as'];
+                $result .= " MDB2.php installed as: " . $db_info['filelist']['MDB2.php']['installed_as'];
                 $db_type = $test_dbh->phptype;
                 
             }
           } else {
-            $result = "DB.php installed in: " . $db_path . " but not in include path: " . get_include_path();
+            $result = "MDB2.php installed in: " . $db_path . " but not in include path: " . get_include_path();
             $status = ERROR;
           }
         }
@@ -419,7 +419,7 @@
         $result = "Requires PEAR";
         $status = WARN;
     }
-    print_row("PEAR::DB", $result, $status);
+    print_row("PEAR::MDB2", $result, $status);
 
 //Database Version
     if (isset($maia_sql_dsn)) {
