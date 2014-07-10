@@ -89,8 +89,7 @@
     sub is_numeric($);
     sub decode_version_string($);
     sub get_single_value_from_db($$$);
-    sub file_needs_patching($$);
-	sub get_module_filepath($);
+    sub get_module_filepath($);
 
     # name of this script
     my $script_name = "configtest";
@@ -263,17 +262,6 @@
 	
 	);
 	
-	my @patches = (
-
-       {name => "MySQL Bug 46675", type => "module", target => 'Mail::SpamAssassin::BayesStore::MySQL',
-        test => 'http:\/\/bugs\.mysql\.com\/bug.php\?id\=46675', patch => 'mysql-bug-46675.patch',
-        conditions => [ 'Mail::SpamAssassin < 3.3.3', 'MySQL Server >= 5.1.20' ],
-        reference => "http://www.maiamailguard.com/maia/ticket/565",
-        download => "http://www.maiamailguard.com/maia/raw-attachment/ticket/565/mysql-bug-46675.patch",
-        postpatch => "Restart maiad after patching is verified."},
-
-	);
-
     print "\nMAIA MAILGUARD CONFIGURATION TEST\n\n";
 
     print "This script checks for the presence of applications and Perl modules\n";
@@ -423,45 +411,6 @@
 
     } else {
     	print("Database tests SKIPPED (missing DBI and/or DBD modules)\n");
-    }
-
-    # Determine if any patches need to be applied
-    foreach my $p (@patches) {
-	   
-	   if (defined($p->{conditions})) {
-		  my $conditions_met = all_conditions_met($p->{conditions});
-          if (defined($conditions_met) && $conditions_met) {
-	         my $original_file;
-	         if ($p->{type} eq 'module') {
-		        $original_file = get_module_filepath($p->{target});
-		     } elsif ($p->{type} eq 'file') {
-			    $original_file = $p->{target};
-		     }
-		     if (file_needs_patching($original_file, $p->{test})) {
-			    print "\n";
-			    print "Patch '" . $p->{name} . "' needs to be applied" .
-			          (defined($p->{reference}) ? " (see " . $p->{reference} . ")" : '') . ".\n";
-			    my $patch_file = find_file_in_path($p->{patch}, PATCH_PATH);
-			    if (defined($patch_file)) {
-				   print "Found patch file: $patch_file\n";
-			    } else {
-				   print "Patch file " . $p->{patch} . " not found.\n";
-				   if (defined($p->{download})) {
-				      print "Download the patch from: " . $p->{download} . "\n";
-				   }
-				   $patch_file = $p->{patch};
-			    }
-				print "To apply the patch, you will need to do the following as 'root':\n\n";
-				print "   patch -d " . dirname($original_file) . " " . basename($original_file) . " < " . $patch_file . "\n\n";
-				print "Run this configtest again afterward to confirm that the patch was applied successfully.\n";
-				print "If the patching was successful this patch warning should no longer appear.\n";
-				if (defined($p->{postpatch})) {
-				   print $p->{postpatch} . "\n";
-				}
-		     }
-          }
-	   }
-	
     }
 
     print "\n";
@@ -643,20 +592,3 @@ EOL
 	}
 
 
-	# Looks for a test signature in the contents of a file
-	# to determine whether it has been patched or not.
-	sub file_needs_patching($$) {
-		my ($file, $signature) = @_;
-
-		open FILE, "<", $file
-		   or die("Can't open $file: $!");
-
-		while (my $line=<FILE>) {
-		   if ($line =~ /$signature/) {
-		      return 0;
-		   }
-		}
-		close(FILE);
-
-		return 1;
-	}
