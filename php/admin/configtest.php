@@ -746,42 +746,6 @@
     print_row("LDAP library", $result, $status);
 
 
-    // mcrypt
-    if (!function_exists("mcrypt_get_iv_size")) {
-    	$result = "Not installed, but only required if you want to be able to encrypt the " .
-    	          "mail stored in Maia's database (quarantine and ham cache).  See " .
-    	          "<a href=\"http://www.php.net/mcrypt/\">this page</a> for more information " .
-    	          "about downloading the MCrypt extensions to PHP, and instructions for " .
-    	          "recompiling PHP with the --with-mcrypt flag.";
-        $status = ERROR;
-    } else {
-    	if (preg_match("/mcrypt support.*?version.*?<td.*?>(.+?)</si", $php_info, $match)) {
-    	    $mcrypt_version = $match[1];
-    	} else {
-    	    $mcrypt_version = "Unknown";
-    	}
-    	$have_blowfish = (preg_match("/mcrypt support.*?Supported ciphers.*?(blowfish)[^\-]/si", $php_info, $match));
-    	$have_cbc = (preg_match("/mcrypt support.*?Supported modes.*?(cbc)/si", $php_info, $match));
-    	if ($have_blowfish && $have_cbc) {
-            $result = $mcrypt_version . " with Blowfish and CBC";
-            $status = OK;
-        } else {
-            $result = "Support for ";
-            if (!$have_blowfish) {
-                $result .= "Blowfish ";
-                if (!$have_cbc) {
-                    $result .= "and CBC ";
-                }
-            } else {
-                $result .= "CBC ";
-            }
-            $result .= "must be compiled into libmcrypt.";
-           $status = ERROR;
-        }
-    }
-    print_row("MCrypt library", $result, $status);
-
-
     // BC
     if (!function_exists("bcadd")) {
     	$result = "Not installed.  This PHP extension is required in order to decode certain " .
