@@ -127,9 +127,6 @@
         {component => "Convert::UUlib", type => "module", regexp => "", minver => "1.08",
          reason => "required by Maia Mailguard"},
 
-        {component => "Crypt::CBC", type => "module", regexp => "", minver => "2.22",
-         reason => "Maia Mailguard's optional encryption feature requires this"},
-
         {component => "Crypt::OpenSSL::RSA", type => "module", regexp => "", minver => "",
          reason => "SpamAssassin's optional DKIM plugin requires this"},
 
