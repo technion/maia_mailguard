@@ -53,9 +53,13 @@
         global $dbh;
 
         if (get_superadmin_id() == 0) {
-            $update = "UPDATE maia_users SET user_level = 'S' " .
-                      "WHERE id = ?";
-            $dbh->query($update, array($uid));
+            $sth = $dbh->prepare("UPDATE maia_users SET user_level = 'S' " .
+                      "WHERE id = ?");
+            $sth->execute(array($uid));
+            if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+            }
+            $sth->free();
             return true;
         } else {
             return false;
@@ -73,9 +77,13 @@
 
         $super_id = get_superadmin_id();
         if ($super_id == $uid) {
-            $update = "UPDATE maia_users SET user_level = 'U' " .
-                      "WHERE id = ?";
-            $dbh->query($update, array($uid));
+            $sth = $dbh->prepare("UPDATE maia_users SET user_level = 'U' " .
+                      "WHERE id = ?");
+            $sth->execute(array($uid));
+            if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+            }
+            $sth->free();
             return true;
         } else {
             return false;
