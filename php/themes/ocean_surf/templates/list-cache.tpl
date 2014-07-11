@@ -100,7 +100,7 @@
 {section name=hamloop loop=$row}
 {strip}
 
-<tr class="{cycle values=$body_class,$alt_body_class }" id="row_{$row[hamloop].id}">
+<tr class="{cycle values="$body_class,$alt_body_class" }" id="row_{$row[hamloop].id}">
 <td align="center"><b>
 {if $cache_type == 'virus'}
 {$row[hamloop].virus_name}
