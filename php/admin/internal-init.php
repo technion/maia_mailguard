@@ -201,7 +201,7 @@
                          "smtp_server, " .
                          "smtp_port " .
                   "FROM maia_config WHERE id = 0");
-        $res = $sth->execute($select);
+        $res = $sth->execute();
         if (PEAR::isError($sth)) {
             die($sth->getMessage());
         }
