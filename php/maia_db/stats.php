@@ -283,12 +283,16 @@
     {
         global $dbh;
 
-        $select = "SELECT enable_false_negative_management, " .
+        $sth = $dbh->prepare("SELECT enable_false_negative_management, " .
                          "enable_virus_scanning, enable_spam_filtering, " .
                          "enable_bad_header_checking, enable_banned_files_checking " .
-                  "FROM maia_config WHERE id = 0";
-        $sth = $dbh->query($select);
-        if ($row = $sth->fetchrow()) {
+                  "FROM maia_config WHERE id = 0");
+        $res = $sth->execute();
+        if (PEAR::isError($sth)) {
+             die($sth->getMessage());
+        }
+
+        if ($row = $res->fetchrow()) {
             $enable_false_negative_management = ($row["enable_false_negative_management"] == 'Y');
             $enable_virus_scanning = ($row["enable_virus_scanning"] == 'Y');
             $enable_spam_filtering = ($row["enable_spam_filtering"] == 'Y');
@@ -326,15 +330,19 @@
             $select .= " + total_banned_file_items";
         }
         $select .= ") AS count FROM maia_stats" . $suffix;
+        $sth = $dbh->prepare($select);
 
-          if ($user_id > 0) {
-            $sth = $dbh->query($select, array($user_id));
+        if ($user_id > 0) {
+            $res = $sth->execute(array($user_id));
         } else {
-            $sth = $dbh->query($select);
+            $res = $sth->execute();
+        }
+        if (PEAR::isError($sth)) {
+             die($sth->getMessage());
         }
 
         $count = 0;
-        if ($row = $sth->fetchrow()) {
+        if ($row = $res->fetchrow()) {
             $count = $row["count"];
         }
         $sth->free();
@@ -366,15 +374,18 @@
         global $dbh;
 
         if ($user_id > 0) {
-            $select = "SELECT oldest_" . $type . "_date AS mindate FROM maia_stats WHERE user_id = ?";
-            $sth = $dbh->query($select, array($user_id));
+            $sth = $dbh->prepare("SELECT oldest_" . $type . "_date AS mindate FROM maia_stats WHERE user_id = ?");
+            $res = $sth->execute(array($user_id));
         } else {
-            $select = "SELECT MIN(oldest_" . $type . "_date) AS mindate FROM maia_stats";
-            $sth = $dbh->query($select);
+            $sth = $dbh->pepare("SELECT MIN(oldest_" . $type . "_date) AS mindate FROM maia_stats");
+            $res = $sth->execute();
+        }
+        if (PEAR::isError($sth)) {
+             die($sth->getMessage());
         }
 
         $days = 0.0;
-        if ($row = $sth->fetchrow()) {
+        if ($row = $res->fetchrow()) {
             sscanf($row["mindate"], "%d-%d-%d %d:%d:%d", $year, $mon, $day, $hour, $min, $sec);
             $tstamp = mktime($hour, $min, $sec, $mon, $day, $year);
             $days = ((time() - $tstamp) / (24 * 60 * 60));
@@ -403,17 +414,20 @@
       global $dbh;
 
       if ($user_id > 0) {
-          $select = "SELECT lowest_" . $type . "_score AS score FROM maia_stats " .
-                    "WHERE user_id = ? AND lowest_" . $type . "_score > -999";
-          $sth = $dbh->query($select, array($user_id));
+          $sth = $dbh->prepare("SELECT lowest_" . $type . "_score AS score FROM maia_stats " .
+                    "WHERE user_id = ? AND lowest_" . $type . "_score > -999");
+          $res = $sth->execute(array($user_id));
       } else {
-          $select = "SELECT MIN(lowest_" . $type . "_score) AS score FROM maia_stats " .
-                    "WHERE lowest_" . $type . "_score > -999";
-          $sth = $dbh->query($select);
+          $sth = $dbh->prepare("SELECT MIN(lowest_" . $type . "_score) AS score FROM maia_stats " .
+                    "WHERE lowest_" . $type . "_score > -999");
+          $res = $sth->execute();
+      }
+      if (PEAR::isError($sth)) {
+           die($sth->getMessage());
       }
 
       $score = 0;
-      if ($row = $sth->fetchrow()) {
+      if ($row = $res->fetchrow()) {
         $score = $row["score"];
       }
       $sth->free();
@@ -440,17 +454,20 @@
       global $dbh;
 
       if ($user_id > 0) {
-          $select = "SELECT highest_" . $type . "_score AS score FROM maia_stats " .
-                    "WHERE user_id = ? AND highest_" . $type . "_score < 999";
-          $sth = $dbh->query($select, array($user_id));
+          $sth = $dbh->prepare("SELECT highest_" . $type . "_score AS score FROM maia_stats " .
+                    "WHERE user_id = ? AND highest_" . $type . "_score < 999");
+          $res = $sth->execute(array($user_id));
       } else {
-          $select = "SELECT MAX(highest_" . $type . "_score) AS score FROM maia_stats " .
-                    "WHERE highest_" . $type . "_score < 999";
-          $sth = $dbh->query($select);
+          $sth = $dbh->prepare("SELECT MAX(highest_" . $type . "_score) AS score FROM maia_stats " .
+                    "WHERE highest_" . $type . "_score < 999");
+          $res = $sth->execute();
+      }
+      if (PEAR::isError($sth)) {
+           die($sth->getMessage());
       }
 
       $score = 0;
-      if ($row = $sth->fetchrow()) {
+      if ($row = $res->fetchrow()) {
           $score = $row["score"];
       }
       $sth->free();
@@ -477,15 +494,18 @@
         global $dbh;
 
         if ($user_id > 0) {
-            $select = "SELECT total_" . $type . "_score AS score FROM maia_stats WHERE user_id = ?";
-            $sth = $dbh->query($select, array($user_id));
+            $sth = $dbh->prepare("SELECT total_" . $type . "_score AS score FROM maia_stats WHERE user_id = ?");
+            $res = $sth->execute(array($user_id));
         } else {
-            $select = "SELECT SUM(total_" . $type . "_score) AS score FROM maia_stats";
-            $sth = $dbh->query($select);
+            $sth = $dbh->prepare("SELECT SUM(total_" . $type . "_score) AS score FROM maia_stats");
+            $res = $sth->execute();
+        }
+        if (PEAR::isError($sth)) {
+             die($sth->getMessage());
         }
 
         $score = 0;
-        if ($row = $sth->fetchrow()) {
+        if ($row = $res->fetchrow()) {
             $score = $row["score"];
         }
         $sth->free();
@@ -517,17 +537,20 @@
         global $dbh;
 
         if ($user_id > 0) {
-            $select = "SELECT smallest_" . $type . "_size AS size FROM maia_stats WHERE user_id = ? AND smallest_" .
-                      $type . "_size > 0";
-            $sth = $dbh->query($select, array($user_id));
+            $sth = $dbh->prepare("SELECT smallest_" . $type . "_size AS size FROM maia_stats WHERE user_id = ? AND smallest_" .
+                      $type . "_size > 0");
+            $res = $sth->execute(array($user_id));
         } else {
-            $select = "SELECT MIN(smallest_" . $type . "_size) AS size FROM maia_stats WHERE smallest_" . $type .
-                      "_size > 0";
-            $sth = $dbh->query($select);
+            $sth = $dbh->prepare("SELECT MIN(smallest_" . $type . "_size) AS size FROM maia_stats WHERE smallest_" . $type .
+                      "_size > 0");
+            $res = $sth->execute();
+        }
+        if (PEAR::isError($sth)) {
+             die($sth->getMessage());
         }
 
         $size = 0;
-        if ($row = $sth->fetchrow()) {
+        if ($row = $res->fetchrow()) {
             $size = $row["size"];
         }
         $sth->free();
@@ -559,15 +582,18 @@
         global $dbh;
 
         if ($user_id > 0) {
-            $select = "SELECT largest_" . $type . "_size AS size FROM maia_stats WHERE user_id = ?";
-            $sth = $dbh->query($select, array($user_id));
+            $sth = $dbh->prepare("SELECT largest_" . $type . "_size AS size FROM maia_stats WHERE user_id = ?");
+            $res = $sth->execute(array($user_id));
         } else {
-            $select = "SELECT MAX(largest_" . $type . "_size) AS size FROM maia_stats";
-            $sth = $dbh->query($select);
+            $sth = $dbh->prepare("SELECT MAX(largest_" . $type . "_size) AS size FROM maia_stats");
+            $res = $sth->execute();
+        }
+        if (PEAR::isError($sth)) {
+             die($sth->getMessage());
         }
 
         $size = 0;
-        if ($row = $sth->fetchrow()) {
+        if ($row = $res->fetchrow()) {
             $size = $row["size"];
         }
         $sth->free();
@@ -599,15 +625,18 @@
         global $dbh;
 
         if ($user_id > 0) {
-            $select = "SELECT total_" . $type . "_size AS size FROM maia_stats WHERE user_id = ?";
-            $sth = $dbh->query($select, array($user_id));
+            $sth = $dbh->prepare("SELECT total_" . $type . "_size AS size FROM maia_stats WHERE user_id = ?");
+            $res = $sth->execute(array($user_id));
         } else {
-            $select = "SELECT SUM(total_" . $type . "_size) AS size FROM maia_stats";
-            $sth = $dbh->query($select);
+            $sth = $dbh->prepare("SELECT SUM(total_" . $type . "_size) AS size FROM maia_stats");
+            $res = $sth->execute();
+        }
+        if (PEAR::isError($sth)) {
+             die($sth->getMessage());
         }
 
         $size = 0;
-        if ($row = $sth->fetchrow()) {
+        if ($row = $res->fetchrow()) {
             $size = $row["size"];
         }
         $sth->free();
