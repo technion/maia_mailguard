@@ -58,9 +58,12 @@
                     return (is_admin_for_domain($uid, $domain_id));
                 } else if (!is_superadmin($euid)) {
 
-                    $select = "SELECT email FROM users WHERE maia_user_id = ?";
-                    $sth = $dbh->query($select, array($euid));
-                    while ($row = $sth->fetchRow()) {
+                    $sth = $dbh->prepare("SELECT email FROM users WHERE maia_user_id = ?");
+                    $res = $sth->execute(array($euid));
+                    if (PEAR::isError($sth)) {
+                        die($sth->getMessage());
+                    }
+                    while ($row = $res->fetchRow()) {
                       $domain_id = get_domain_id("@" . get_domain_from_email($row["email"]));
                       if (is_admin_for_domain($uid, $domain_id)) {
                           $sth->free();
@@ -143,9 +146,12 @@
 
                // Set the user's proper name in the database
                // record, to speed up future lookups.
-               $update = "UPDATE maia_users SET user_name = ? " .
-                         "WHERE id = ?";
-               $dbh->query($update, array($user_name, $uid));
+               $sth = $dbh->prepare("UPDATE maia_users SET user_name = ? " .
+                         "WHERE id = ?");
+               $sth->execute(array($user_name, $uid));
+               if (PEAR::isError($sth)) {
+                   die($sth->getMessage());
+               }
 
             } else {
 
@@ -255,15 +261,19 @@
         global $dbh;
 
         // Link the e-mail address to the new owner
-        $update = "UPDATE users SET maia_user_id = ? WHERE email = ?";
-        $dbh->query($update, array($new_owner_id, $email));
+        $sth = $dbh->prepare("UPDATE users SET maia_user_id = ? WHERE email = ?");
+        $sth->execute(array($new_owner_id, $emaila));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        $sth->free();
 
         // If the old owner has no other e-mail addresses, merge
         // the old owner's assets into the new owner's account
         // and delete the old owner.
-        $select = "SELECT id FROM users WHERE maia_user_id = ?";
-        $sth = $dbh->query($select, array($old_owner_id));
-        if (!$sth->fetchRow()) {
+        $sth = $dbh->prepare("SELECT id FROM users WHERE maia_user_id = ?");
+        $res = $sth->execute(array($old_owner_id));
+        if (!$res->fetchRow()) {
             transfer_mail_to_user($old_owner_id, $new_owner_id);
             transfer_wblist_to_user($old_owner_id, $new_owner_id);
             transfer_domain_admin_to_user($old_owner_id, $new_owner_id);
@@ -284,7 +294,7 @@
     {
         global $dbh;
 
-        $select = "SELECT oldest_ham_date, " .
+        $sth = $dbh->prepare("SELECT oldest_ham_date, " .
                          "newest_ham_date, " .
                          "smallest_ham_size, " .
                          "largest_ham_size, " .
@@ -356,9 +366,12 @@
                          "largest_oversized_size, " .
                          "total_oversized_size, " .
                          "total_oversized_items " .
-                  "FROM maia_stats WHERE user_id = ?";
-        $sth = $dbh->query($select, array($old_owner_id));
-        if ($row = $sth->fetchRow()) {
+                  "FROM maia_stats WHERE user_id = ?");
+        $res = $sth->execute(array($old_owner_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        if ($row = $res->fetchRow()) {
             $old_oldest_ham_date = $row["oldest_ham_date"];
             $old_newest_ham_date = $row["newest_ham_date"];
             $old_smallest_ham_size = $row["smallest_ham_size"];
@@ -434,8 +447,11 @@
 
             // New owner already has a stats record, merge the old owner's
             // stats into this record appropriately.
-            $sth2 = $dbh->query($select, array($new_owner_id));
-            if ($row2 = $sth2->fetchRow()) {
+            $res2 = $sth->execute(array($new_owner_id));
+            if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+            } 
+            if ($row2 = $res2->fetchRow()) {
 
              // Confirmed Ham
                 $new_oldest_ham_date = $row2["oldest_ham_date"];
@@ -673,7 +689,7 @@
                 $new_total_oversized_size = $row2["total_oversized_size"] + $old_total_oversized_size;
                 $new_total_oversized_items = $row2["total_oversized_items"] + $old_total_oversized_items;
 
-                $update = "UPDATE maia_stats SET oldest_ham_date = ?, " .
+                $sthu = $dbh->prepare("UPDATE maia_stats SET oldest_ham_date = ?, " .
                                                 "newest_ham_date = ?, " .
                                                 "smallest_ham_size = ?, " .
                                                 "largest_ham_size = ?, " .
@@ -745,8 +761,8 @@
                                                 "largest_oversized_size = ?, " .
                                                 "total_oversized_size = ?, " .
                                                 "total_oversized_items = ? " .
-                          "WHERE user_id = ?";
-                $dbh->query($update, array($new_oldest_ham_date,
+                          "WHERE user_id = ?");
+                $sthu->execute(array($new_oldest_ham_date,
                                            $new_newest_ham_date,
                                            $new_smallest_ham_size,
                                            $new_largest_ham_size,
@@ -819,12 +835,15 @@
                                            $new_total_oversized_size,
                                            $new_total_oversized_items,
                                            $new_owner_id));
+            if (PEAR::isError($sthu)) {
+                die($sthu->getMessage());
+            }
 
             // New owner does NOT have a stats record yet, so just
             // copy the old owner's stats over directly.
             } else {
 
-                $insert = "INSERT INTO maia_stats (oldest_ham_date, " .
+                $sthi = $dbh->prepare("INSERT INTO maia_stats (oldest_ham_date, " .
                                                   "newest_ham_date, " .
                                                   "smallest_ham_size, " .
                                                   "largest_ham_size, " .
@@ -900,8 +919,8 @@
                           "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?," .
                                   "?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?," .
                                   "?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?," .
-                                  "?,?,?,?,?,?,?,?,?,?,?,?,?)";
-                $dbh->query($insert, array($old_oldest_ham_date,
+                                  "?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                $sti->execute(array($old_oldest_ham_date,
                                            $old_newest_ham_date,
                                            $old_smallest_ham_size,
                                            $old_largest_ham_size,
@@ -974,6 +993,11 @@
                                            $old_total_oversized_size,
                                            $old_total_oversized_items,
                                            $new_owner_id));
+                 if (PEAR::isError($sth)) {
+                    die($sth->getMessage());
+                $sti->free();
+                }
+                  
             }
             $sth2->free();
         }
@@ -989,8 +1013,12 @@
     {
         global $dbh;
     
-        $update = "UPDATE maia_domain_admins SET admin_id = ? WHERE admin_id = ?";
-        $dbh->query($update, array($new_owner_id, $old_owner_id));
+        $sth = $dbh->prepare("UPDATE maia_domain_admins SET admin_id = ? WHERE admin_id = ?");
+        $sth->execute(array($new_owner_id, $old_owner_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        $sth->free();
     }
 
 
@@ -1002,8 +1030,11 @@
     {
         global $dbh;
 
-        $update = "UPDATE wblist SET rid = ? WHERE rid = ?";
-        $dbh->query($update, array($new_owner_id, $old_owner_id));
+        $sth = $dbh->prepare("UPDATE wblist SET rid = ? WHERE rid = ?");
+        $sth->execute(array($new_owner_id, $old_owner_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
     }
 
 
@@ -1015,8 +1046,11 @@
     {
         global $dbh;
 
-        $update = "UPDATE maia_mail_recipients SET recipient_id = ? WHERE recipient_id = ?";
-        $dbh->query($update, array($new_owner_id, $old_owner_id));
+        $sth = $dbh->prepare("UPDATE maia_mail_recipients SET recipient_id = ? WHERE recipient_id = ?");
+        $sth->execute(array($new_owner_id, $old_owner_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
     }
 
 
@@ -1031,22 +1065,33 @@
         delete_user_email_addresses($uid);
 
         // Delete the user's statistics
-        $delete = "DELETE FROM maia_stats WHERE user_id = ?";
-        $dbh->query($delete, array($uid));
+        $sth = $dbh->prepare("DELETE FROM maia_stats WHERE user_id = ?");
+        $sth->execute(array($uid));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        $sth->free();
 
         // Delete the user's white/blacklist entries
         delete_user_wb_entries($uid);
 
         // Delete the user's domain admin records
-        $delete = "DELETE FROM maia_domain_admins WHERE admin_id = ?";
-        $dbh->query($delete, array($uid));
+        $sth = $dbh->prepare("DELETE FROM maia_domain_admins WHERE admin_id = ?");
+        $sth->execute(array($uid));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        $sth->free();
 
         // Delete the user's mail references
         delete_user_mail_references($uid);
 
         // Delete the user's record itself
-        $delete = "DELETE FROM maia_users WHERE id = ?";
-        $dbh->query($delete, array($uid));
+        $sth = $dbh->prepare("DELETE FROM maia_users WHERE id = ?");
+        $sth->execute(array($uid));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
     }
 
     /*
@@ -1143,8 +1188,11 @@
     {
         global $dbh;
 
-        $update = "UPDATE maia_users SET primary_email_id = ? WHERE id = ?";
-        $dbh->query($update, array($email_id, $user_id));
+        $sth = $dbh->prepare("UPDATE maia_users SET primary_email_id = ? WHERE id = ?");
+        $sth->execute(array($email_id, $user_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
     }
 
 
@@ -1193,13 +1241,16 @@
     {
         global $dbh;
 
-        $select = "SELECT " . $key . " FROM maia_users WHERE id = ?";
-        $sth = $dbh->query($select, array($user_id));
-
-        if ($row = $sth->fetchrow()) {
-           $value = $row[$key];
+        $sth = $dbh->prepare("SELECT " . $key . " FROM maia_users WHERE id = ?");
+        $res = $sth->execute(array($user_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
         }
 
+        if ($row = $res->fetchrow()) {
+           $value = $row[$key];
+        }
+        $sth->free();
         return $value;
     }
 
