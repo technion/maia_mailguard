@@ -190,9 +190,9 @@
                                        $spam_kill_level));
         }
 
-        $select = "SELECT id FROM policy WHERE policy_name = ?";
-        $sth = $dbh->query($select, array($email));
-        if ($row = $sth->fetchRow()) {
+        $sth = $dbh->prepare("SELECT id FROM policy WHERE policy_name = ?");
+        $res = $sth->execute(array($email));
+        if ($row = $res->fetchRow()) {
             $policy_id = $row["id"];
         }
         $sth->free();

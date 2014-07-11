@@ -1077,11 +1077,18 @@
     {
         global $dbh;
         $priority = get_email_address_priority($address);
-        $insert = "INSERT INTO users (policy_id, email, priority, maia_user_id, maia_domain_id) VALUES (?,?,?,?,?)";
-        $dbh->query($insert, array($policy_id, $address, $priority, $uid, $domain_id));
-        $select = "SELECT id FROM users WHERE email = ?";
-        $sth = $dbh->query($select, array($address));
-        if ($row = $sth->fetchrow()) {
+        $sth = $dbh->prepare("INSERT INTO users (policy_id, email, priority, maia_user_id, maia_domain_id) VALUES (?,?,?,?,?)");
+        $sth->execute(array($policy_id, $address, $priority, $uid, $domain_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        $sth->free();
+        $sth = $dbh->prepare("SELECT id FROM users WHERE email = ?");
+        $res = $sth->execute(array($address));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        if ($row = $res->fetchrow()) {
            $email_id = $row["id"];
         } else {
          $email_id = 0;
