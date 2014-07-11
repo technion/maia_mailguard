@@ -98,6 +98,7 @@
 
     require_once ("../smarty.php");
     $smarty->assign("display_language",$display_language);
+    $smarty->assign("error","");
 
     // Only show this page if we've selected internal
     // authentication and there's no current superadmin
@@ -141,21 +142,23 @@
             $trusted_port = "";
         }
 
-        $update = "UPDATE maia_config SET enable_user_autocreation = 'N', " .
+        $sth = $dbh->prepare("UPDATE maia_config SET enable_user_autocreation = 'N', " .
                                          "internal_auth = 'Y', " .
                                          "admin_email = ?, " .
                                          "reminder_login_url = ?, " .
                                          "newuser_template_file = ?, " .
                                          "smtp_server = ?, " .
                                          "smtp_port = ? " . 
-                                       "WHERE id = 0";
-        $dbh->query($update, array($admin_email,
+                                       "WHERE id = 0");
+        $sth->execute(array($admin_email,
                                    $reminder_login_url,
                                    $newuser_template_file,
                                    $trusted_server,
                                    $trusted_port
                                    ));
-
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
 
         $new_email = get_rewritten_email_address($your_email, $address_rewriting_type);
         $username = $new_email;
@@ -168,8 +171,12 @@
 
         // Generate a random password and assign it to the new user
         list($password, $digest) = generate_random_password();
-        $update = "UPDATE maia_users SET password = ? WHERE id = ?";
-        $dbh->query($update, array($digest, $new_user_id));
+        $sth = $dbh->prepare("UPDATE maia_users SET password = ? WHERE id = ?");
+        $sth->execute(array($digest, $new_user_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        $sth->free();
 
         $fh = fopen($newuser_template_file, "r");
         if ($fh) {
@@ -180,7 +187,7 @@
           $body = preg_replace("/%%PASSWORD%%/", $password, $body);
           $body = preg_replace("/%%LOGINURL%%/", $reminder_login_url, $body);
           $result = smtp_send($admin_email, $new_email, $body);
-          if ($succeeded = (strncmp($result, "2", 1) == 0)) {
+          if (strncmp($result, "2", 1) != 0) {
             $smarty->assign("error", $result);
           }
         } else {
@@ -188,14 +195,17 @@
         }
     } else {
         $smarty->assign("submitted", false);
-        $select = "SELECT admin_email, " .
+        $sth = $dbh->prepare("SELECT admin_email, " .
                          "reminder_login_url, " .
                          "newuser_template_file, " .
                          "smtp_server, " .
                          "smtp_port " .
-                  "FROM maia_config WHERE id = 0";
-        $sth = $dbh->query($select);
-        if ($row = $sth->fetchrow()) {
+                  "FROM maia_config WHERE id = 0");
+        $res = $sth->execute($select);
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        if ($row = $res->fetchrow()) {
             $admin_email = $row["admin_email"];
             $reminder_login_url = $row["reminder_login_url"];
             $newuser_template_file = $row["newuser_template_file"];

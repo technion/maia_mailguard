@@ -105,9 +105,12 @@
 		global $dbh;
 		global $lang;
 		
-		$select = "SELECT smtp_server, smtp_port FROM maia_config WHERE id = 0";
-		$sth = $dbh->query($select);
-		if ($row = $sth->fetchrow()) {
+		$sth = $dbh->prepare("SELECT smtp_server, smtp_port FROM maia_config WHERE id = 0");
+		$res = $sth->execute();
+                if (PEAR::isError($sth)) {
+                    die($sth->getMessage());
+                }
+		if ($row = $res->fetchrow()) {
 		  $host = $row["smtp_server"];
 		  $port = $row["smtp_port"];
 		}
