@@ -152,8 +152,11 @@ class MessageCache {
                  case "T":
                  case "S":
                      if ($sort[1] == "A" || $sort[1] == "D") {
-                         $update = "UPDATE maia_users SET ". $field ." = ? WHERE id = ?";
-                         $this->dbh->query($update, array($sort, $euid));
+                         $sth = $dbh->prepare("UPDATE maia_users SET ". $field ." = ? WHERE id = ?");
+                         $sth->execute(array($sort, $euid));
+                         if (PEAR::isError($sth)) {
+                             die($sth->getMessage());
+                         }
                          header("Location: list-cache.php" . $msid. "cache_type=". $this->type);
                          exit;
                      }
@@ -227,7 +230,7 @@ class MessageCache {
     }
     
     function set_select() {
-        $this->select_count = "SELECT COUNT(maia_mail.id) " .
+        $this->select_count = "SELECT COUNT(maia_mail.id) as CNT " .
               "FROM maia_mail_recipients " .
               "LEFT JOIN maia_mail " .
               "ON maia_mail.id = maia_mail_recipients.mail_id " .
@@ -451,13 +454,22 @@ class MessageCache {
 			
 		}
 
-        $numRows = $this->dbh->getOne($this->select_count, array($euid));
-  
-        if ($numRows > 0)
+        $sth3 = $this->dbh->prepare($this->select_count);
+        $res3 = $sth3->execute(array($euid));
+        if (PEAR::isError($sth3)) {
+            die($sth3->getMessage());
+        }
+        $numRows = $res3->fetchRow();
+        $sth3->free();
+
+        if ($numRows['cnt'] > 0)
         {
-            $select2 = "SELECT email FROM users WHERE maia_user_id = ?";
-            $sth2 = $this->dbh->query($select2, array($euid));
-            while ($row2 = $sth2->fetchrow()) {
+            $sth2 = $this->dbh->prepare("SELECT email FROM users WHERE maia_user_id = ?");
+            $res2 = $sth2->execute(array($euid));
+            if (PEAR::isError($sth2)) {
+                die($sth2->getMessage());
+            }
+            while ($row2 = $res2->fetchrow()) {
                 $personal_addresses[] = $row2["email"];
             }
             $sth2->free();
@@ -480,7 +492,7 @@ class MessageCache {
                                    'totalItems' => $numRows,
                                    );
 
-            $paged_data = Pager_Wrapper_DB($this->dbh, $this->select_stmt, $pagerOptions, null, DB_FETCHMODE_ASSOC, array($euid));
+            $paged_data = Pager_Wrapper_DB($this->dbh, $this->select_stmt, $pagerOptions, null, MDB2_FETCHMODE_ASSOC, array($euid));
             //$paged_data['data'];  //paged data
             //$paged_data['links']; //xhtml links for page navigation
             //$paged_data['page_numbers']; //array('current', 'total');
@@ -579,7 +591,7 @@ class MessageCache {
                                         "WHERE maia_viruses_detected.mail_id=?");
         }
 
-        $result = $this->dbh->execute($vsth, array($mail_id));
+        $result = $vsth->execute(array($mail_id));
         $ret = array();
         while ($row = $result->fetchrow()) {
             array_push($ret, $row['virus_name']);
@@ -594,7 +606,7 @@ class MessageCache {
                                         "WHERE mail_id=?");
         }
 
-        $result = $this->dbh->execute($bsth, array($mail_id));
+        $result = $bsth->execute(array($mail_id));
         $ret = array();
         while ($row = $result->fetchrow()) {
             array_push($ret, $row['file_name'] . " (" . $row['file_type'] . ")" );
