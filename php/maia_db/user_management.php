@@ -130,11 +130,13 @@
 
         } else {
 
-            $sth->free();
 
             // Now try looking the user up by e-mail address,
             // in case the user was "auto-created".
             $res = $sth->execute(array($email));
+            if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+            }
             if ($row = $res->fetchRow()) {
                $uid = $row["id"];
                $sth->free();
@@ -153,6 +155,7 @@
             }
         }
 
+        $sth->free();
         return $uid;
     }
 
@@ -204,10 +207,10 @@
 
 
         // Add an entry to the maia_users table
-        $insert = "INSERT INTO maia_users (user_name, reminders, charts, language, auto_whitelist, " .
+        $sth = $dbh->prepare("INSERT INTO maia_users (user_name, reminders, charts, language, auto_whitelist, " .
                   "items_per_page, theme_id, quarantine_digest_interval, truncate_subject, truncate_email, spamtrap) " .
-                  "VALUES (?,?,?,?,?,?,?,?,?,?,'N')";
-        $res = $dbh->query($insert, array($user_name,
+                  "VALUES (?,?,?,?,?,?,?,?,?,?,'N')");
+        $res = $sth->execute(array($user_name,
                                  $domain_defaults["reminders"],
                                    $domain_defaults["charts"],
                  $domain_defaults["language"],
@@ -221,10 +224,14 @@
             $logger->err("Can't insert new user: ". $res->getMessage());
             return -1;
         }
+        $sth->free();
         // Get the UID of this new record
-        $select = "SELECT id FROM maia_users WHERE user_name = ?";
-        $sth = $dbh->query($select, array($user_name));
-        if ($row = $sth->fetchRow()) {
+        $sth = $dbh->prepare("SELECT id FROM maia_users WHERE user_name = ?");
+        $res = $sth->execute(array($user_name));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        if ($row = $res->fetchRow()) {
             $uid = $row["id"];
         }
         $sth->free();
@@ -1197,13 +1204,16 @@
     {
         global $dbh;
 
-        $select = "SELECT * FROM maia_users WHERE id = ? LIMIT 1";
-        $sth = $dbh->query($select, array($user_id));
-
-        if ($row = $sth->fetchrow()) {
-           $value = $row;
+        $sth = $dbh->prepare("SELECT * FROM maia_users WHERE id = ? LIMIT 1");
+        $res = $sth->execute(array($user_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
         }
 
+        if ($row = $res->fetchrow()) {
+           $value = $row;
+        }
+        $sth->free();
         return $value;
     }
 

@@ -115,7 +115,6 @@
             $spam_kill_level = $row["spam_kill_level"];
             $nodefault = false;
         } else {
-            $sth->free();
 
             // Try to find a "Default" policy (@.) to copy defaults from.
             $res = $sth->execute(array("Default"));
