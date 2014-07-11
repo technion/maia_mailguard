@@ -106,11 +106,14 @@
     // Pressed the "Update This Domain's Settings" button
     if (isset($_POST['update_domain'])) {
 
-        $select = "SELECT enable_charts, reminder_threshold_count, " .
+        $sth = $dbh->prepare("SELECT enable_charts, reminder_threshold_count, " .
                          "enable_spamtraps " .
-                  "FROM maia_config WHERE id = 0";
-        $sth = $dbh->query($select);
-        if ($row = $sth->fetchrow()) {
+                  "FROM maia_config WHERE id = 0");
+        $res = $sth->execute();
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        if ($row = $res->fetchrow()) {
             $enable_charts = ($row["enable_charts"] == 'Y');
             $reminder_threshold_count = $row["reminder_threshold_count"];
             $enable_spamtraps = ($row["enable_spamtraps"] == 'Y');
@@ -123,7 +126,7 @@
             $policy_id = 0;
         }
 
-    	$select = "SELECT virus_lover, " .
+    	$sth = $dbh->prepare("SELECT virus_lover, " .
     	                 "spam_lover, " .
     	                 "banned_files_lover, " .
     	                 "bad_header_lover, " .
@@ -139,9 +142,12 @@
     	                 "spam_tag_level, " .
     	                 "spam_tag2_level, " .
     	                 "spam_kill_level " .
-    	          "FROM policy WHERE id = ?";
-    	$sth = $dbh->query($select, array($policy_id));
-    	if ($row = $sth->fetchRow()) {
+    	          "FROM policy WHERE id = ?");
+    	$res = $sth->execute(array($policy_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+    	if ($row = $res->fetchRow()) {
     	    $default_quarantine_viruses = ($row["virus_lover"] == "N");
     	    $default_quarantine_spam = ($row["spam_lover"] == "N");
     	    $default_quarantine_banned_files = ($row["banned_files_lover"] == "N");
@@ -160,12 +166,15 @@
     	    $default_score_level_3 = $row["spam_kill_level"];
         }
         $sth->free();
-        $select = "SELECT maia_users.id, maia_users.discard_ham, maia_domains.enable_user_autocreation, maia_users.theme_id " .
+        $sth = $dbh->prepare("SELECT maia_users.id, maia_users.discard_ham, maia_domains.enable_user_autocreation, maia_users.theme_id " .
   	                   "FROM maia_users, maia_domains " .
   	                   "WHERE maia_domains.domain = maia_users.user_name " .
-  	                   "AND maia_domains.id = ?";
-  	$sth = $dbh->query($select, array($domain_id));
-  	if ($row = $sth->fetchrow()) {
+  	                   "AND maia_domains.id = ?");
+  	$res = $sth->execute(array($domain_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+  	if ($row = $res->fetchrow()) {
   	    $domain_user_id = $row["id"];
   	    $default_discard_ham = ($row["discard_ham"] == "Y");
   	    $default_enable_user_autocreation = ($row["enable_user_autocreation"] == "Y");
@@ -283,7 +292,7 @@
   	}
 
         // Update the policy table with the new settings.
-        $update = "UPDATE policy SET virus_lover = ?, " .
+        $sth = $dbh->prepare("UPDATE policy SET virus_lover = ?, " .
                                     "spam_lover = ?, " .
                                     "banned_files_lover = ?, " .
                                     "bad_header_lover = ?, " .
@@ -299,8 +308,8 @@
                                     "spam_tag_level = ?, " .
                                     "spam_tag2_level = ?, " .
                                     "spam_kill_level = ? " .
-                  "WHERE id = ?";
-        $dbh->query($update, array($virus_lover,
+                  "WHERE id = ?");
+        $sth->execute(array($virus_lover,
                                    $spam_lover,
                                    $banned_files_lover,
                                    $bad_header_lover,
@@ -317,12 +326,23 @@
                                    $spam_tag2_level,
                                    $spam_kill_level,
                                    $policy_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        $sth->free();
 
-        $update = "UPDATE maia_users SET discard_ham = ?, theme_id = ? WHERE id = ?";
-        $dbh->query($update, array($discard_ham, $theme_id, $domain_user_id));
+        $sth = $dbh->prepare("UPDATE maia_users SET discard_ham = ?, theme_id = ? WHERE id = ?");
+        $sth->execute(array($discard_ham, $theme_id, $domain_user_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        $sth->free();
 
-	$update = "UPDATE maia_domains SET enable_user_autocreation = ? WHERE id = ?";
-  	$dbh->query($update, array($enable_user_autocreation, $domain_id));	
+	$sth = $dbh->prepare("UPDATE maia_domains SET enable_user_autocreation = ? WHERE id = ?");
+  	$sth->execute(array($enable_user_autocreation, $domain_id));	                if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        $sth->free();
 
         $message = $lang['text_settings_updated'];
     // Pressed the "Revoke Administrator Privileges" button
@@ -334,13 +354,16 @@
             $formVars[$varname] = trim($value);
         }
 
-        $select = "SELECT maia_users.id, maia_users.user_name " .
+        $sth = $dbh->prepare("SELECT maia_users.id, maia_users.user_name " .
                   "FROM maia_users, maia_domain_admins " .
                   "WHERE maia_users.id = maia_domain_admins.admin_id " .
-                  "AND maia_domain_admins.domain_id = ?";
-        $sth = $dbh->query($select, array($domain_id));
+                  "AND maia_domain_admins.domain_id = ?");
+        $res = $sth->execute(array($domain_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
 
-        while ($row = $sth->fetchrow()) {
+        while ($row = $res->fetchrow()) {
 
             $admin_name = $row["user_name"];
             $admin_var_name = str_replace(".", "_", $admin_name);
@@ -351,16 +374,27 @@
             if (isset($formVars[$admin_var_name]) && trim($formVars[$admin_var_name]) == $admin_id) {
 
             	// Remove the link between this administrator and this domain
-                $delete = "DELETE FROM maia_domain_admins WHERE domain_id = ? AND admin_id = ?";
-                $dbh->query($delete, array($domain_id, $admin_id));
+                $sth2 = $dbh->prepare("DELETE FROM maia_domain_admins WHERE domain_id = ? AND admin_id = ?");
+                $sth2->execute(array($domain_id, $admin_id));
+                if (PEAR::isError($sth2)) {
+                    die($sth2->getMessage());
+                }
+                $sth2->free9();
 
                 // If this administrator doesn't control any remaining domains,
                 // demote him to a regular (U)ser.
-                $select = "SELECT domain_id FROM maia_domain_admins WHERE admin_id = ?";
-                $sth2 = $dbh->query($select, array($admin_id));
-                if (!$sth2->fetchrow()) {
-         	    $update = "UPDATE maia_users SET user_level = 'U' WHERE id = ?";
-        	    $dbh->query($update, array($admin_id));
+                $sth2 = $dbh->prepare("SELECT domain_id FROM maia_domain_admins WHERE admin_id = ?");
+                $res2 = $sth2->execute(array($admin_id));
+                if (PEAR::isError($sth2)) {
+                    die($sth2->getMessage());
+                }
+                if (!$res2->fetchrow()) {
+         	    $sth3 = $dbh->prepare("UPDATE maia_users SET user_level = 'U' WHERE id = ?");
+        	    $sth3->execute(array($admin_id));
+                    if (PEAR::isError($sth)) {
+                        die($sth->getMessage());
+                    }
+                    $sth3->free();
         	}
         	$sth2->free();
             }
@@ -379,12 +413,20 @@
             foreach ($admins as $admin_id) {
 
             	// Link the administrator to this domain
-            	$insert = "INSERT INTO maia_domain_admins (admin_id, domain_id) VALUES (?, ?)";
-            	$dbh->query($insert, array($admin_id, $domain_id));
+            	$sth = $dbh->prepare("INSERT INTO maia_domain_admins (admin_id, domain_id) VALUES (?, ?)");
+            	$sth->execute(array($admin_id, $domain_id));
+                if (PEAR::isError($sth)) {
+                   die($sth->getMessage());
+                }
+                $sth->free();
 
             	// Change the user's privilege level to Domain (A)dministrator
-            	$update = "UPDATE maia_users SET user_level = 'A' WHERE id = ?";
-            	$dbh->query($update, array($admin_id));
+            	$sth = $dbh->prepare("UPDATE maia_users SET user_level = 'A' WHERE id = ?");
+            	$sth->execute(array($admin_id));
+                if (PEAR::isError($sth)) {
+                    die($sth->getMessage());
+                }
+                $sth->free();
 
             	$message = $lang['text_administrators_added'];
 

@@ -147,13 +147,17 @@
         if ($nodefault) {
 
             // Use the database defaults as our last resort.
-            $insert = "INSERT INTO policy (policy_name) VALUES (?)";
-            $dbh->query($insert, array($email));
+            $sth = $dbh->prepare("INSERT INTO policy (policy_name) VALUES (?)");
+            $sth->execute(array($email));
+            if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+            }
+            $sth->free();
 
         } else {
 
             // Use the domain or system default values found above.
-            $insert = "INSERT INTO policy (policy_name, " .
+            $sth = $dbh->prepare("INSERT INTO policy (policy_name, " .
                                           "virus_lover, " .
                                           "spam_lover, " .
                                           "banned_files_lover, " .
@@ -170,8 +174,8 @@
                                           "spam_tag_level, " .
                                           "spam_tag2_level, " .
                                           "spam_kill_level" .
-                      ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-            $dbh->query($insert, array($email,
+                      ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+            $sth->execute(array($email,
                                        $virus_lover,
                                        $spam_lover,
                                        $banned_files_lover,
@@ -188,10 +192,17 @@
                                        $spam_tag_level,
                                        $spam_tag2_level,
                                        $spam_kill_level));
+            if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+            }
+            $sth->free();
         }
 
         $sth = $dbh->prepare("SELECT id FROM policy WHERE policy_name = ?");
         $res = $sth->execute(array($email));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
         if ($row = $res->fetchRow()) {
             $policy_id = $row["id"];
         }
@@ -208,8 +219,12 @@
     {
         global $dbh;
 
-        $delete = "DELETE FROM policy WHERE id = ?";
-        $dbh->query($delete, array($policy_id));
+        $sth = $dbh->prepare("DELETE FROM policy WHERE id = ?");
+        $sth->execute(array($policy_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        $sth->free();
     }
 
 
@@ -220,14 +235,21 @@
     {
         global $dbh;
 
-        $select = "SELECT policy_id " .
+        $sth = $dbh->prepare("SELECT policy_id " .
                   "FROM users " .
-                  "WHERE id = ?";
-        $sth = $dbh->query($select, array($address_id));
-        if ($row = $sth->fetchRow()) {
+                  "WHERE id = ?");
+        $res = $sth->execute(array($address_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        if ($row = $res->fetchRow()) {
             delete_policy($row["policy_id"]);
-            $delete = "DELETE FROM users WHERE id = ?";
-            $dbh->query($delete, array($address_id));
+            $sth2 = $dbh->prepare("DELETE FROM users WHERE id = ?");
+            $sth2->execute(array($address_id));
+            if (PEAR::isError($sth2)) {
+                die($sth2->getMessage());
+            }
+            $sth2->free();
         }
         $sth->free();
     }
@@ -241,18 +263,25 @@
     {
         global $dbh;
 
-        $select ="SELECT users.id AS address_id, users.policy_id, users.maia_user_id, maia_users.user_name, maia_users.primary_email_id " .
+        $sth = $dbh->prepare("SELECT users.id AS address_id, users.policy_id, users.maia_user_id, maia_users.user_name, maia_users.primary_email_id " .
                    "FROM users, maia_users " .
                    "WHERE users.maia_user_id = maia_users.id " .
-                   "AND users.id = ?";
-        $sth = $dbh->query($select, array($address_id));
-        if ($row = $sth->fetchRow()) {
+                   "AND users.id = ?");
+        $res = $sth->prepare(array($address_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+
+        if ($row = $res->fetchRow()) {
             # was this address the owner's primary address?
             if ($row['address_id'] == $row['primary_email_id']) {
                 # yes - does the address owner own any other addresses?
-                $query = "SELECT COUNT(id) AS idcount FROM users WHERE maia_user_id = ? AND id <> ?";
-                $sth2 = $dbh->query($query, array($row['maia_user_id'], $row['address_id']));
-                $row2 = $sth2->fetchrow();
+                $sth2 = $dbh->prepare("SELECT COUNT(id) AS idcount FROM users WHERE maia_user_id = ? AND id <> ?");
+                $res2 = $sth2->execute(array($row['maia_user_id'], $row['address_id']));
+                if (PEAR::isError($sth2)) {
+                    die($sth2->getMessage());
+                }  
+                $row2 = $res2->fetchrow();
                 if($row2['idcount'] <> 0) {
                   #yes - we can't go on with this, unless we add an override option too.
                   return false;
@@ -260,15 +289,21 @@
                   #no, it's the only address, go ahead and remove user too.
                   delete_user($row['maia_user_id']);
                 }
+            $sth2->free();
             } else {
                 #not the primary email address, just remove the address.
                 #no need to delete anything else, until per-address is in effect
                 delete_policy($row["policy_id"]);
-                $delete = "DELETE FROM users WHERE id = ?";
-            $dbh->query($delete, array($address_id));
+                $sth2 = $dbh->prepare("DELETE FROM users WHERE id = ?");
+                $sth2->execute(array($address_id));
+                if (PEAR::isError($sth)) {
+                    die($sth->getMessage());
+                }
+                $sth2->free();
             }
             return true;
         }
+        $sth->free();
         return false;
     }
 
@@ -281,9 +316,12 @@
     {
         global $dbh;
 
-        $select = "SELECT id FROM users WHERE maia_user_id = ?";
-        $sth = $dbh->query($select, array($uid));
-        while ($row = $sth->fetchRow()) {
+        $sth = $dbh->prepare("SELECT id FROM users WHERE maia_user_id = ?");
+        $res = $sth->execute(array($uid));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        while ($row = $res->fetchRow()) {
             delete_email_address($row["id"]);
         }
         $sth->free();

@@ -103,13 +103,16 @@
    if (isset($_POST['delete_all_items']))
    {  
       $del_list = array();
-      $select = "SELECT mail_id FROM maia_mail_recipients " .
+      $sth = $dbh->prepare("SELECT mail_id FROM maia_mail_recipients " .
                 "WHERE type IN ('S','P','V','F','B','H') " .
                 "AND recipient_id = ? " .
-                "AND mail_id <= ?";
+                "AND mail_id <= ?");
 
-      $sth = $dbh->query($select, array($euid, $maxitemid));
-      while ($row = $sth->fetchRow())
+      $res = $sth->execute(array($euid, $maxitemid));
+      if (PEAR::isError($sth)) {
+          die($sth->getMessage());
+      }
+      while ($row = $res->fetchRow())
       {
          array_push($del_list, $row["mail_id"]);
       }
@@ -119,10 +122,13 @@
    
    
    if (isset($_POST['change_protection']) && isset($_POST['protection_level'])) {
-    $select = "SELECT policy_id FROM users WHERE maia_user_id = ?"; 
-    $sth = $dbh->query($select, $euid);
+    $sth = $dbh->prepare("SELECT policy_id FROM users WHERE maia_user_id = ?"); 
+    $res = $sth->execute($euid);
+    if (PEAR::isError($sth)) {
+        die($sth->getMessage());
+    }
  
-    $update = "UPDATE policy SET virus_lover = ?, " .
+    $sth2 = $dbh->prepare("UPDATE policy SET virus_lover = ?, " .
                                     "spam_lover = ?, " .
                                     "banned_files_lover = ?, " .
                                     "bad_header_lover = ?, " .
@@ -138,15 +144,18 @@
                                     "spam_tag_level = ?, " .
                                     "spam_tag2_level = ?, " .
                                     "spam_kill_level = ? " .
-                  "WHERE id = ?";
+                  "WHERE id = ?");
     $protection_level = $_POST["protection_level"];
                   
-    while ($row = $sth->fetchrow()) {
-      	$dbh->query($update, array_merge($protection[$protection_level], array($row['policy_id'])));
+    while ($row = $res->fetchrow()) {
+      	$sth2->execute(array_merge($protection[$protection_level], array($row['policy_id'])));
+        if (PEAR::isError($sth2)) {
+            die($sth2->getMessage());
+        }
     	
     }
     $sth->free();
-    
+    $sth2->free();
     
     
    }
@@ -208,7 +217,9 @@
              "FROM users LEFT JOIN policy ON users.policy_id=policy.id ".
              "WHERE users.maia_user_id = ?"); 
     $res = $sth->execute(array($euid));
-    
+    if (PEAR::isError($sth)) {
+        die($sth->getMessage());
+    }
     
     
     

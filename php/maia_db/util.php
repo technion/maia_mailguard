@@ -12,13 +12,16 @@
     {
         global $dbh;
 
-        $select = "SELECT " . $key . " FROM maia_config WHERE id = 0";
-        $sth = $dbh->query($select);
-
-        if ($row = $sth->fetchrow()) {
-            $value = $row[$key];
+        $sth = $dbh->prepare("SELECT " . $key . " FROM maia_config WHERE id = 0");
+        $res = $sth->execute();
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
         }
 
+        if ($row = $res->fetchrow()) {
+            $value = $row[$key];
+        }
+        $sth->free();
         return $value;
     }
 
@@ -61,14 +64,17 @@
     function get_chart_colors() {
         global $dbh;
 
-        $select = "SELECT chart_suspected_ham_colour AS sh, chart_ham_colour AS h, chart_wl_colour as wl, " .
+        $sth = $dbh->prepare("SELECT chart_suspected_ham_colour AS sh, chart_ham_colour AS h, chart_wl_colour as wl, " .
                           "chart_bl_colour as bl, chart_suspected_spam_colour as ss, chart_spam_colour as s, " .
                           "chart_fp_colour as fp, chart_fn_colour as fn, chart_virus_colour as v " .
-                  "FROM maia_config WHERE id=0";
+                  "FROM maia_config WHERE id=0");
 
-        $sth = $dbh->query($select);
+        $res = $sth->execute();
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
 
-        if ($row = $sth->fetchrow()) {
+        if ($row = $res->fetchrow()) {
             $value = $row;
         }
         $sth->free();
@@ -160,9 +166,12 @@
     function get_default_theme()
     {
         global $dbh;
-        $select = "SELECT theme_id FROM maia_users WHERE user_name=?";
-        $sth = $dbh->query($select, array('@.'));
-        if ($row=$sth->fetchrow()) {
+        $sth = $dbh->prepare("SELECT theme_id FROM maia_users WHERE user_name=?");
+        $res = $sth->execute(array('@.'));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        if ($row=$res->fetchrow()) {
             $default_theme_id = $row['theme_id'];
         } else {
             #ack! no default?

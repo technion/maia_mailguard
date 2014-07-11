@@ -98,7 +98,7 @@
        exit();
     }
 
-    $select = "SELECT virus_lover, " .
+    $sth = $dbh->prepare("SELECT virus_lover, " .
                      "spam_lover, " .
                      "banned_files_lover, " .
                      "bad_header_lover, " .
@@ -118,11 +118,14 @@
                      "policy_id " .
               "FROM users, policy " .
               "WHERE users.policy_id = policy.id " .
-              "AND users.maia_domain_id = ?";
+              "AND users.maia_domain_id = ?");
 
     $system_default = false;
-    $sth = $dbh->query($select, array($domain_id));
-    if ($row = $sth->fetchRow()) {
+    $res = $sth->execute(array($domain_id));
+    if (PEAR::isError($sth)) {
+        die($sth->getMessage());
+    }
+    if ($row = $res->fetchRow()) {
         $address = $row["email"];
         if ($address == "@.") {
             $smarty->assign('address', $lang['text_system_default'] . " (@.)");
@@ -231,20 +234,25 @@
     $sth->free();
     
     //get list of themes
-    $select = "SELECT id, name FROM maia_themes";
-    $sth = $dbh->query($select);
+    $sth = $dbh->prepare("SELECT id, name FROM maia_themes");
+    $res = $sth->execute();
+    if (PEAR::isError($sth)) {
+        die($sth->getMessage());
+    }
+
     $themes = array();
-    while ($row = $sth->fetchrow()) {
+    while ($row = $res->fetchrow()) {
        $themes[$row['id']] = $row['name'];
     }
     $smarty->assign("themes", $themes);
+    $sth->free();
     
-    $select = "SELECT maia_users.discard_ham, maia_domains.enable_user_autocreation, maia_users.theme_id " .
+    $sth = $dbh->prepare("SELECT maia_users.discard_ham, maia_domains.enable_user_autocreation, maia_users.theme_id " .
   	                   "FROM maia_users, maia_domains " .
   	                   "WHERE maia_domains.domain = maia_users.user_name " .
-  	                   "AND maia_domains.id = ?";
-    $sth = $dbh->query($select, array($domain_id));
-    if ($row = $sth->fetchrow()) {
+  	                   "AND maia_domains.id = ?");
+    $res = $sth->execute(array($domain_id));
+    if ($row = $res->fetchrow()) {
         $smarty->assign('theme_id', $row["theme_id"]);
         if ($row["discard_ham"] == 'Y') {
             $smarty->assign('dh_y_checked', "");
@@ -268,15 +276,18 @@
     }
     $sth->free();
     
-    $select = "SELECT maia_users.user_name, maia_users.id " .
+    $sth = $dbh->prepare("SELECT maia_users.user_name, maia_users.id " .
               "FROM maia_users, maia_domain_admins " .
               "WHERE maia_users.id = maia_domain_admins.admin_id " .
               "AND maia_domain_admins.domain_id = ? " .
-              "ORDER BY maia_users.user_name ASC";
-    $sth = $dbh->query($select, array($domain_id));
+              "ORDER BY maia_users.user_name ASC");
+    $res = $sth->prepare(array($domain_id));
+    if (PEAR::isError($sth)) {
+        die($sth->getMessage());
+    }
     $admins = array();
-    if (($rowcount = $sth->numrows()) > 0) {
-        while ($row = $sth->fetchrow()) {
+    if (($rowcount = $res->numrows()) > 0) {
+        while ($row = $res->fetchrow()) {
             $admins[] = array(
                 'id' => $row["id"],
                 'name' => $row["user_name"],
@@ -288,19 +299,23 @@
 
     $sth->free();
 
-    $select = "SELECT maia_users.id " .
+    $sth = $dbh->prepare("SELECT maia_users.id " .
               "FROM maia_users, maia_domain_admins " .
               "WHERE maia_users.id = maia_domain_admins.admin_id " .
-              "AND maia_domain_admins.domain_id = ?";
-    $rows = $dbh->getall($select, array($domain_id));
+              "AND maia_domain_admins.domain_id = ?");
+    $res = $sth->execute(array($domain_id));
+    if (PEAR::isError($sth)) {
+        die($sth->getMessage());
+    }
     $id_list = "";
-    foreach ($rows as $row) {
+    while($row = $res->fetchRow()) {
         if (!empty($id_list)) {
             $id_list .= "," . $row["id"];
         } else {
             $id_list = $row["id"];
         }
     }
+    $sth->free();
 
     $select = "SELECT user_name, id " .
               "FROM maia_users " .
@@ -310,11 +325,15 @@
         $select .= "AND id NOT IN (" . $id_list . ") ";
     }
     $select .= "ORDER BY user_name ASC";
-    $sth = $dbh->query($select);
+    $sth->prepare($select)
+    $res = $sth->execute();
+    if (PEAR::isError($sth)) {
+        die($sth->getMessage());
+    }
 
-    if ($sth->numrows()) {
+    if ($res->numrows()) {
         $add_admins = array();
-        while ($row = $sth->fetchrow()) {
+        while ($row = $res->fetchrow()) {
             $add_admins[] = array(
                 'id' => $row["id"],
                 'name' => $row["user_name"]
