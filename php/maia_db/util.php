@@ -87,8 +87,9 @@
     }
 
 
-    function Pager_Wrapper_DB(&$db, $query, $pager_options = array(), $disabled = false, $fetchMode = DB_FETCHMODE_ASSOC, $dbparams = null)
+    function Pager_Wrapper_DB(&$db, $query, $pager_options = array(), $disabled = false, $fetchMode = MDB2_FETCHMODE_ASSOC, $dbparams = null)
     {
+        $db->setFetchMode($fetchMode);
         if (!array_key_exists('totalItems', $pager_options)) {
             //  be smart and try to guess the total number of records
             if ($countQuery = rewriteCountQuery($query)) {
@@ -119,17 +120,21 @@
         );
         list($page['from'], $page['to']) = $pager->getOffsetByPageId();
 
-        $res = ($disabled)
-            ? $db->limitQuery($query, 0, $totalItems, $dbparams)
-            : $db->limitQuery($query, $page['from']-1, $pager_options['perPage'], $dbparams);
+	if (!$disabled) {
+            $db->setLimit($page['from']-1, $pager_options['perPage']);
+        }
+        $sth = $db->prepare($query);
+        $res = $sth->execute($dbparams);
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+         
 
-        if (PEAR::isError($res)) {
-            return $res;
-        }
         $page['data'] = array();
-        while ($res->fetchInto($row, $fetchMode)) {
-           $page['data'][] = $row;
-        }
+#        while ($res->fetchInto($row, $fetchMode)) {
+#           $page['data'][] = $row;
+#        }
+        $page['data'][] = $res->fetchRow();
         if ($disabled) {
             $page['links'] = '';
             $page['page_numbers'] = array(
