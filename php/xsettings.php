@@ -144,16 +144,19 @@
             exit;
         }
 
-        $select = "SELECT policy_id, email, maia_user_id FROM users
-                   WHERE users.maia_user_id = ? AND users.id = ?";
-        $sth = $dbh->query($select, array($euid, $address_id));
-        if ($sth->numRows() == 0 ) {
+        $sth = $dbh->prepare("SELECT policy_id, email, maia_user_id FROM users
+                   WHERE users.maia_user_id = ? AND users.id = ?");
+        $res = $sth->execute(array($euid, $address_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        if ($res->numRows() == 0 ) {
             $logger->err("xsettings.php: address_id doesn't belong to effective user: $address_id");
             header("Location: logout.php");
             exit;
         }
 
-        $row = $sth->fetchRow();
+        $row = $res->fetchRow();
 
         if (! (is_admin_for_domain($uid, 
                                    get_domain_id("@" . get_domain_from_email($row["email"])))
@@ -168,7 +171,7 @@
         $policy_id = $row['policy_id'];
 
         $sth->free();
-        $select = "SELECT virus_lover, " .
+        $sth = $dbh->prepare("SELECT virus_lover, " .
                         "spam_lover, " .
                         "banned_files_lover, " .
                         "bad_header_lover, " .
@@ -184,9 +187,12 @@
                         "spam_tag_level, " .
                         "spam_tag2_level, " .
                         "spam_kill_level " .
-                 "FROM policy WHERE id = ?";
-        $sth = $dbh->query($select, array($policy_id));
-        if ($row = $sth->fetchRow()) {
+                 "FROM policy WHERE id = ?");
+        $res = $sth->execute(array($policy_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        if ($row = $res->fetchRow()) {
             $default_quarantine_viruses = ($row["virus_lover"] == "N");
             $default_quarantine_spam = ($row["spam_lover"] == "N");
             $default_quarantine_banned_files = ($row["banned_files_lover"] == "N");
@@ -300,7 +306,7 @@
         }
 
         // Update the policy table with the new settings.
-        $update = "UPDATE policy SET virus_lover = ?, " .
+        $sth = $dbh->prepare("UPDATE policy SET virus_lover = ?, " .
                                     "spam_lover = ?, " .
                                     "banned_files_lover = ?, " .
                                     "bad_header_lover = ?, " .
@@ -316,13 +322,13 @@
                                     "spam_tag_level = ?, " .
                                     "spam_tag2_level = ?, " .
                                     "spam_kill_level = ? " .
-                  "WHERE id = ?";
+                  "WHERE id = ?");
 
         if (isset($_POST["upall"])) {
-            $select = "SELECT policy_id FROM users WHERE maia_user_id = ? ";
-            $sth = $dbh->query($select, array($euid));
-            while ($row = $sth->fetchrow()) {
-                $dbh->query($update, array($virus_lover,
+            $sth2 = $dbh->prepare("SELECT policy_id FROM users WHERE maia_user_id = ? ");
+            $res2 = $sth2->execute(array($euid));
+            while ($row = $res2->fetchrow()) {
+                $sth->execute(array($virus_lover,
                                            $spam_lover,
                                            $banned_files_lover,
                                            $bad_header_lover,
@@ -339,10 +345,13 @@
                                            $spam_tag2_level,
                                            $spam_kill_level,
                                            $row["policy_id"]));
+                if (PEAR::isError($sth)) {
+                    die($sth->getMessage());
+                }
             }
-            $sth->free();
+            $sth2->free();
         } else {
-            $dbh->query($update, array($virus_lover,
+            $sth->execute(array($virus_lover,
                                        $spam_lover,
                                        $banned_files_lover,
                                        $bad_header_lover,
@@ -359,6 +368,9 @@
                                        $spam_tag2_level,
                                        $spam_kill_level,
                                        $policy_id));
+            if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+            }
         }
 
         $_SESSION['message'] = $lang['text_settings_updated'];
@@ -404,13 +416,20 @@
         }
         if (isset($_POST["digest_interval"])) {
             $quarantine_digest_interval = intval($_POST["digest_interval"]) * 60; //adjust from hours displayed to minutes in database
-            $update = "UPDATE maia_users SET quarantine_digest_interval = ? WHERE id = ?";
-            $dbh->query($update, array($quarantine_digest_interval, $euid));
+            $sth = $dbh->prepare("UPDATE maia_users SET quarantine_digest_interval = ? WHERE id = ?");
+            $sth->execute(array($quarantine_digest_interval, $euid));
+            if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+            }
+            $sth->free();
         }
         if (isset($_POST["language"])) {
             $language = trim($_POST["language"]);
-            $update = "UPDATE maia_users SET language = ? WHERE id = ?";
-            $dbh->query($update, array($language, $euid));
+            $sth = $dbh->prepare("UPDATE maia_users SET language = ? WHERE id = ?");
+            $sth->execute(array($language, $euid));
+            if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+            }
             if ($uid == $euid) {
                 $display_language = $language;
                 $_SESSION["display_language"] = $display_language;
@@ -418,29 +437,49 @@
         }
         if (isset($_POST["theme_id"])) {
             $theme_id = (trim($_POST["theme_id"]));
-            $update = "UPDATE maia_users SET theme_id = ? WHERE id = ?";
-            $dbh->query($update, array($theme_id, $euid));
+            $sth = $dbh->prepare("UPDATE maia_users SET theme_id = ? WHERE id = ?");
+            $sth->execute(array($theme_id, $euid));
+            if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+            }
+            $sth->free();
         }
         if (isset($_POST["truncate_subject"])) {
             $truncate_subject = (trim($_POST["truncate_subject"]));
-            $update = "UPDATE maia_users SET truncate_subject = ? WHERE id = ?";
-            $dbh->query($update, array($truncate_subject, $euid));
+            $sth = $dbh->prepare("UPDATE maia_users SET truncate_subject = ? WHERE id = ?");
+            $sth->execute(array($truncate_subject, $euid));
+            if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+            }
+            $sth->free();
         }
         if (isset($_POST["truncate_email"])) {
             $truncate_email = (trim($_POST["truncate_email"]));
-            $update = "UPDATE maia_users SET truncate_email = ? WHERE id = ?";
-            $dbh->query($update, array($truncate_email, $euid));
+            $sth = $dbh->prepare("UPDATE maia_users SET truncate_email = ? WHERE id = ?");
+            $sth->execute(array($truncate_email, $euid));
+            if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+            }
+            $sth->free();
         }
         if (isset($_POST["discard_ham"])) {
             $discard_ham = (trim($_POST["discard_ham"]));
-            $update = "UPDATE maia_users SET discard_ham = ? WHERE id = ?";
-            $dbh->query($update, array($discard_ham, $euid));
+            $sth = $dbh->prepare("UPDATE maia_users SET discard_ham = ? WHERE id = ?");
+            $sth->execute(array($discard_ham, $euid));
+            if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+            }
+            $sth->free();
         }    
         if (isset($_POST["enable_user_autocreation"])) {
             $enable_user_autocreation = (trim($_POST["enable_user_autocreation"]));
             $domain_id = $_POST['domain_id'];
-            $update = "UPDATE maia_domains SET enable_user_autocreation = ? WHERE id = ?";
-            $dbh->query($update, array($enable_user_autocreation, $domain_id));
+            $sth = $dbh->prepare("UPDATE maia_domains SET enable_user_autocreation = ? WHERE id = ?");
+            $sth->execute(array($enable_user_autocreation, $domain_id));
+            if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+            }
+            $sth->free();
         }
 
         $_SESSION['message'] = $lang['text_settings_updated'];
@@ -566,18 +605,25 @@
      */
     } elseif (isset($_POST["user_id"])) {
         $user_id = trim($_POST["user_id"]);
-        $select = "SELECT users.id, users.email " .
+        $sth = $dbh->prepare("SELECT users.id, users.email " .
                   "FROM users, maia_users " .
                   "WHERE users.maia_user_id = maia_users.id " .
                   "AND users.id <> maia_users.primary_email_id " .
-                  "AND users.maia_user_id = ?";
-        $sth = $dbh->query($select, array($user_id));
-        while ($row = $sth->fetchrow()) {
+                  "AND users.maia_user_id = ?");
+        $res = $sth->execute(array($user_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        while ($row = $res->fetchrow()) {
             $email_id = $row["id"];
             $address = $row["email"];
             if (isset($_POST["make_primary_" . $email_id])) {
-                $update = "UPDATE maia_users SET primary_email_id = ? WHERE id = ?";
-                $dbh->query($update, array($email_id, $user_id));
+                $sth2 = $dbh->prepare("UPDATE maia_users SET primary_email_id = ? WHERE id = ?");
+                $sth2->execute(array($email_id, $user_id));
+                if (PEAR::isError($sth)) {
+                    die($sth->getMessage());
+                }
+                $sth2->free();
                 $message = sprintf($lang['text_new_primary_email'], $address);
             }
         }
@@ -602,8 +648,8 @@
           } else {
              // Right now, transport settings is limited to only $super,
              //but leaving this code branch in case we decide to change that.
-            $update = "UPDATE maia_domains set transport=? WHERE id=?";
-            $res = $dbh->query($update, array($transport, $domain_id));
+            $sth = $dbh->prepare("UPDATE maia_domains set transport=? WHERE id=?");
+            $res = $sth->execute(array($transport, $domain_id));
           }
 
           if (PEAR::isError($res)) {
@@ -611,6 +657,7 @@
           } else {
             $message = $lang['text_transport_set'];
           }
+          $sth->free();
       } else {
         $message =  sprintf($lang['text_transport_error'], $lang['text_invalid_transport_form']);
       }
@@ -631,12 +678,20 @@
 
             foreach ($admins as $admin_id) {
                 // Link the administrator to this domain
-                $insert = "INSERT INTO maia_domain_admins (admin_id, domain_id) VALUES (?, ?)";
-                $dbh->query($insert, array($admin_id, $domain_id));
+                $sth = $dbh->prepare("INSERT INTO maia_domain_admins (admin_id, domain_id) VALUES (?, ?)");
+                $sth->execute(array($admin_id, $domain_id));
+                if (PEAR::isError($sth)) {
+                    die($sth->getMessage());
+                }
+                $sth->free();
 
                 // Change the user's privilege level to Domain (A)dministrator
-                $update = "UPDATE maia_users SET user_level = 'A' WHERE id = ?";
-                $dbh->query($update, array($admin_id));
+                $sth = $dbh->prepare("UPDATE maia_users SET user_level = 'A' WHERE id = ?");
+                $sth->execute(array($admin_id));
+                if (PEAR::isError($sth)) {
+                    die($sth->getMessage());
+                }
+                $sth->free();
 
                 $message = $lang['text_administrators_added'];
             }
@@ -656,18 +711,30 @@
         $rids = $_POST['revoke_id'];
 
         foreach($rids as $key => $rid) {
-            $delete = "DELETE FROM maia_domain_admins WHERE domain_id = ? AND admin_id = ?";
-            $dbh->query($delete, array($domain_id, $rid));
+            $sth = $dbh->perpare("DELETE FROM maia_domain_admins WHERE domain_id = ? AND admin_id = ?");
+            $sth->execute(array($domain_id, $rid));
+            if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+            }
+            $sth->free();
 
             // If this administrator doesn't control any remaining domains,
             // demote him to a regular (U)ser.
-            $select = "SELECT domain_id FROM maia_domain_admins WHERE admin_id = ?";
-            $sth2 = $dbh->query($select, array($rid));
+            $sth2 = $dbh->prepare("SELECT domain_id FROM maia_domain_admins WHERE admin_id = ?");
+            $res2 = $sth2->execute(array($rid));
+            if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+            }
             if (!$sth2->fetchrow()) {
-                $update = "UPDATE maia_users SET user_level = 'U' WHERE id = ?";
-                $dbh->query($update, array($rid));
+                $sth3 = $dbh->prepare("UPDATE maia_users SET user_level = 'U' WHERE id = ?");
+                $sth3->execute(array($rid));
+                if (PEAR::isError($sth)) {
+                    die($sth->getMessage());
+                }
+                $sth3->free();
 
             }
+            $sth2->free();
         }
         $_SESSION['message'] = $lang['text_admins_revoked'];
         header("Location: settings.php{$msid}tab=2");

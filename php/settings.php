@@ -88,12 +88,15 @@
     $message = ""; //initialize variable
 
     // get some system config items - these control whether or not to show certain options
-    $select = "SELECT enable_charts, reminder_threshold_count, " .
+    $sth = $dbh->prepare("SELECT enable_charts, reminder_threshold_count, " .
                      "enable_spamtraps, enable_username_changes, " .
                      "enable_address_linking " .
-              "FROM maia_config WHERE id = 0";
-    $sth = $dbh->query($select);
-    if ($row = $sth->fetchrow()) {
+              "FROM maia_config WHERE id = 0");
+    $res = $sth->execute();
+    if (PEAR::isError($sth)) {
+        die($sth->getMessage());
+    }
+    if ($row = $res->fetchrow()) {
         $enable_charts = ($row["enable_charts"] == 'Y');
         $reminder_threshold_count = $row["reminder_threshold_count"];
         $enable_spamtraps = ($row["enable_spamtraps"] == 'Y');
@@ -323,8 +326,11 @@
               "WHERE maia_users.id = maia_domain_admins.admin_id " .
               "AND maia_domain_admins.domain_id = ?");
         $res = $sth->execute(array($domain_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
         $id_list = "";
-        foreach ($rows as $row) {
+        while($row = $res->fetchrow()) {
             if (!empty($id_list)) {
                 $id_list .= "," . $row["id"];
             } else {
@@ -339,9 +345,12 @@
         if (!empty($id_list)) {
             $select .= "AND id NOT IN (" . $id_list . ") ";
         }
-        $select .= "ORDER BY user_name ASC";
+        $select .= " ORDER BY user_name ASC";
         $sth = $dbh->prepare($select);
         $res = $sth->execute();
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
 
         if ($res->numrows()) {
             $add_admins = array();
@@ -381,6 +390,9 @@
                   "AND users.id = ?");
 
         $res = $sth->execute(array($address_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
         if ($row = $res->fetchRow()) {
             $smarty->assign('address', $row["email"]);
             $smarty->assign('policy_id', $row["policy_id"]);
