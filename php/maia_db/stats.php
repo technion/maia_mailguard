@@ -377,7 +377,7 @@
             $sth = $dbh->prepare("SELECT oldest_" . $type . "_date AS mindate FROM maia_stats WHERE user_id = ?");
             $res = $sth->execute(array($user_id));
         } else {
-            $sth = $dbh->pepare("SELECT MIN(oldest_" . $type . "_date) AS mindate FROM maia_stats");
+            $sth = $dbh->prepare("SELECT MIN(oldest_" . $type . "_date) AS mindate FROM maia_stats");
             $res = $sth->execute();
         }
         if (PEAR::isError($sth)) {
