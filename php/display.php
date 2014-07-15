@@ -170,24 +170,36 @@
    {
        global $dbh;
        $rows = array();
+       
+       if (PEAR::isError($dbh)) { 
+            return $dbh; 
+       }
 
-       $select = "SELECT rule_name, rule_description, maia_sa_rules_triggered.rule_score " .
+
+       $sth = $dbh->prepare("SELECT rule_name, rule_description, maia_sa_rules_triggered.rule_score " .
                  "FROM maia_sa_rules, maia_sa_rules_triggered " .
                  "WHERE maia_sa_rules.id = maia_sa_rules_triggered.rule_id " .
                  "AND maia_sa_rules_triggered.mail_id = ? " .
-                 "ORDER BY maia_sa_rules_triggered.rule_score DESC";
-       $sth = $dbh->query($select, array($mail_id));
-       if ($sth->numrows() > 0) {
+                 "ORDER BY maia_sa_rules_triggered.rule_score DESC");
+       if (PEAR::isError($sth)) { 
+            die($sth . "and " . $mail_id); 
+       }
+       $res = $sth->execute(array($mail_id));
+       if (PEAR::isError($res)) { 
+            return $res; 
+       }
 
-           while ($row = $sth->fetchrow()) {
+       if ($res->numrows() > 0) {
+
+           while ($row = $res->fetchrow()) {
                $rows[] = array ( 'rule_score' => sprintf("%.3f", $row["rule_score"]),
                                  'rule_name'  => $row["rule_name"],
                                  'description' => add_links_to_text($row["rule_description"]));
 
            }
-           $sth->free();
 
        }
+       $sth->free();
        return $rows;
 
    }

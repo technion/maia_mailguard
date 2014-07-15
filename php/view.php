@@ -191,13 +191,13 @@
    //    7bit
    //
 
-   $select = "SELECT maia_mail.contents, maia_mail.sender_email " .
+   $sth = $dbh->prepare("SELECT maia_mail.contents, maia_mail.sender_email " .
              "FROM maia_mail, maia_mail_recipients " .
              "WHERE maia_mail.id = maia_mail_recipients.mail_id " .
              "AND maia_mail.id = ? " .
-             "AND maia_mail_recipients.recipient_id = ?";
-   $sth = $dbh->query($select, array($id, $euid));
-   if ($row = $sth->fetchrow()) {
+             "AND maia_mail_recipients.recipient_id = ?");
+   $res = $sth->execute(array($id, $euid));
+   if ($row = $res->fetchrow()) {
        $contents = $row["contents"];
        $sender_email = $row['sender_email'];
 
@@ -237,9 +237,6 @@
 
 
        } else {
-
-          // Strip out the X-Envelope-To: header for privacy
-          $contents = preg_replace("/X-Envelope-To:(.*)\n/i", "", $contents);
 
           // Dump the raw contents of the e-mail, making sure to
           // escape any HTML tags it might contain, so the raw source
