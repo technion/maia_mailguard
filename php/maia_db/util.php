@@ -52,10 +52,18 @@
             $chars[] = $i;
         }
 
-        $password = "";
-        for ($i = 0; $i < $password_length; $i++) {
-            $password .= $chars[mt_rand(0, count($chars)-1)];
+        $ur = fopen("/dev/urandom", "r");
+        if(!$ur) {
+            die("Failed to open /dev/urandom");
         }
+        $urb = "";
+        while (strlen($urb) < $password_length) {
+            $urb .= fread($ur, $password_length - strlen($urb));
+        }
+        fclose($ur);
+
+        $password = base64_encode($urb);
+
         $digest = md5($password);
 
         return array($password, $digest);
