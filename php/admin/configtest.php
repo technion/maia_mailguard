@@ -421,6 +421,19 @@
     }
     print_row("PEAR::MDB2", $result, $status);
 
+    // PEAR::MDB2:mysql
+    if ($have_pear) {
+        if (!in_array("mdb2_driver_mysql", $pear_list)) {
+            $result = "Not installed.  This PHP extension is required in order to provide " .
+                      "database abstraction.  Use <b>pear install MDB2#mysql</b> to install this.";
+            $status = ERROR;
+        } else {
+            $result = "Pear::MDB2#mysql installed";
+            $status = OK;
+        }
+        print_row("PEAR::MDB2#mysql", $result, $status);
+    }
+
 //Database Version
     if (isset($maia_sql_dsn)) {
       if (preg_match('/^mysqli/', $maia_sql_dsn)) {
