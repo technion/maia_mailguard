@@ -1,0 +1,15 @@
+
+[Unit]
+Description=Maiad Daemon
+After = syslog.target nss-lookup.target network.target
+
+
+[Service]
+Type=forking
+ExecStart = /var/lib/maia/maiad
+Restart = on-failure
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+
