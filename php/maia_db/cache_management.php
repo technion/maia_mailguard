@@ -12,29 +12,49 @@
         }
 
         // Delete any references to recipients
-        $delete = "DELETE FROM maia_mail_recipients WHERE mail_id IN (?" . str_repeat(',?', count($mail_ids) - 1) . ")";
-        $res = $dbh->query($delete, $mail_ids);
-        sql_check($res,"delete_mail",$delete);
+        $sth = $dbh->prepare("DELETE FROM maia_mail_recipients WHERE mail_id IN (?" . str_repeat(',?', count($mail_ids) - 1) . ")");
+        $res = $dbh->execute(array($mail_ids));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+
+        $sth->free();
 
         // Delete any references to SpamAssassin rules
-        $delete = "DELETE FROM maia_sa_rules_triggered WHERE mail_id IN (?" . str_repeat(',?', count($mail_ids) - 1) . ")";
-        $res = $dbh->query($delete, $mail_ids);
-        sql_check($res,"delete_mail",$delete);
+        $sth = $dbh->prepare("DELETE FROM maia_sa_rules_triggered WHERE mail_id IN (?" . str_repeat(',?', count($mail_ids) - 1) . ")");
+        $res = $sth->execute(array($mail_ids));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+
+        $sth->free();
 
         // Delete any references to viruses
-        $delete = "DELETE FROM maia_viruses_detected WHERE mail_id IN (?" . str_repeat(',?', count($mail_ids) - 1) . ")";
-        $res = $dbh->query($delete, $mail_ids);
-        sql_check($res,"delete_mail",$delete);
+        $sth = $dbh->prepare("DELETE FROM maia_viruses_detected WHERE mail_id IN (?" . str_repeat(',?', count($mail_ids) - 1) . ")");
+        $res = $sth->execute(array($mail_ids));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+
+        $sth->free();
 
         // Delete any references to banned file attachments
-        $delete = "DELETE FROM maia_banned_attachments_found WHERE mail_id IN (?" . str_repeat(',?', count($mail_ids) - 1) . ")";
-        $res = $dbh->query($delete, $mail_ids);
-        sql_check($res,"delete_mail",$delete);
+        $sth = $dbh->prepare("DELETE FROM maia_banned_attachments_found WHERE mail_id IN (?" . str_repeat(',?', count($mail_ids) - 1) . ")");
+        $res = $sth->execute(array($mail_ids));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+
+        $sth->free();
 
         // Delete the mail item itself
-        $delete = "DELETE FROM maia_mail WHERE id IN (?" . str_repeat(',?', count($mail_ids) - 1) . ")";
-        $res = $dbh->query($delete, $mail_ids);
-        sql_check($res,"delete_mail",$delete);
+        $sth = $dbh->prepare("DELETE FROM maia_mail WHERE id IN (?" . str_repeat(',?', count($mail_ids) - 1) . ")");
+        $res = $sth->execute(array($mail_ids));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+
+        $sth->free();
     }
 
 
@@ -55,9 +75,14 @@
         $delete = "DELETE FROM maia_mail_recipients WHERE recipient_id = ? AND mail_id IN (";
         $delete .= '?' . str_repeat(',?', count($mail_ids) - 1);
         $delete .= ")";
+        $sth = $dbh->prepare($delete);
 
-        $res = $dbh->query($delete, array_merge((array)$user_id, (array)$mail_ids));
-        sql_check($res,"delete_mail_reference",$delete);
+        $res = $sth->execute(array_merge((array)$user_id, (array)$mail_ids));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+
+        $sth->free();
 
         // If there are no other recipients referenced by each mail item,
         // delete it.
@@ -68,11 +93,15 @@
                "ON maia_mail.id = maia_mail_recipients.mail_id " .
         "WHERE maia_mail.id IN (?" . str_repeat(',?', count($mail_ids) - 1) .") " .
           "AND mail_id IS NULL";
-        $sth = $dbh->query($select, $mail_ids);
-        sql_check($sth,"delete_mail_reference",$select);
+        $sth = $dbh->prepare($select);
+        $res = $sth->execute(array($mail_ids));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+
         $deletions = array();
 
-        while ($row = $sth->fetchrow() ) {
+        while ($row = $res->fetchrow() ) {
             array_push($deletions, $row['id']);
         }
         $sth->free();
@@ -93,10 +122,13 @@
 
         // Delete recipient references to any mail items this user
         // might have.
-        $select = "SELECT mail_id FROM maia_mail_recipients WHERE recipient_id = ?";
-        $sth = $dbh->query($select, array($uid));
-        sql_check($sth,"delete_user_mail_references",$select);
-        while ($row = $sth->fetchRow()) {
+        $sth = $dbh->prepare("SELECT mail_id FROM maia_mail_recipients WHERE recipient_id = ?");
+        $res = $sth->execute(array($uid));
+        if (PEAR::isError($sth)) { 
+            die($sth->getMessage()); 
+        } 
+
+        while ($row = $res->fetchRow()) {
             delete_mail_reference($uid, $row["mail_id"]);
         }
         $sth->free();
@@ -111,9 +143,13 @@
         global $dbh;
         $complete_success = true;
 
-        $query = "SELECT id FROM users WHERE email LIKE ? AND email not like ?";
-        $sth = $dbh->query($query, array('%'.$domain, $domain));
-        while ($row = $sth->fetchrow()) {
+        $sth = $dbh->prepare("SELECT id FROM users WHERE email LIKE ? AND email not like ?");
+        $res = $sth->execute(array('%'.$domain, $domain));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+
+        while ($row = $res->fetchrow()) {
             $return = smart_delete_email_address($row['id']);
             if (!$return) {
                 $complete_success = false;
@@ -137,8 +173,12 @@
         $update .= '?' . str_repeat(',?', count($mail_id) - 1);
 
         $update .= ")";
-        $res = $dbh->query($update, array_merge((array)$message_type, (array)$user_id, (array)$mail_id));
-        sql_check($res,"set_item_confirmations",$update);
+        $sth = $dbh->prepare($update);
+        $res = $sth->execute(array_merge((array)$message_type, (array)$user_id, (array)$mail_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+
     }
 
      /*
@@ -209,16 +249,18 @@
     {
         global $dbh, $logger;
 
-        $select = "SELECT sender_email, contents, " .
+        $sth = $dbh->prepare("SELECT sender_email, contents, " .
                          "envelope_to, maia_mail_recipients.type " .
                   "FROM maia_mail, maia_mail_recipients " .
                   "WHERE maia_mail.id = maia_mail_recipients.mail_id " .
                   "AND maia_mail_recipients.recipient_id = ? " .
-                  "AND maia_mail_recipients.mail_id = ?";
-        $sth = $dbh->query($select, array($user_id, $mail_id));
-        sql_check($sth, "rescue_item", $select);
+                  "AND maia_mail_recipients.mail_id = ?");
+        $res = $sth->execute(array($user_id, $mail_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
 
-        if ($row = $sth->fetchrow()) {
+        if ($row = $res->fetchrow()) {
           $sender_email = $row["sender_email"];
           $body = $row["contents"];
           $type = $row["type"];
@@ -239,20 +281,22 @@
 
             // Regular user (e.g. user@domain)
                 $rlist = explode(" ", trim($row["envelope_to"]));
-                $select = "SELECT email FROM users " .
+                $sth2 = $dbh->prepare("SELECT email FROM users " .
                           "WHERE maia_user_id = ? " .
-                          "AND email = ?";
+                          "AND email = ?");
                 $my_email_address = "";
                 foreach ($rlist as $rmail) {
-                    $sth2 = $dbh->query($select, array($user_id, $rmail));
-                    sql_check($sth2, "rescue_item", $select);
-                    if ($row2 = $sth2->fetchrow()) {
+                    $res2 = $sth2->execute(array($user_id, $rmail));
+                    if (PEAR::isError($sth2)) {
+                        die($sth2->getMessage());
+                    }
+
+                    if ($row2 = $res2->fetchrow()) {
                         $my_email_address = $row2["email"];
-                        $sth2->free();
                         break;
                     }
-                    $sth2->free();
                 }
+                $sth2->free();
 
             }
             if (!empty($my_email_address)) {
