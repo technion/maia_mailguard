@@ -138,31 +138,44 @@
                           "WHERE maia_domains.id = maia_domain_admins.domain_id " .
                           "AND maia_domain_admins.admin_id = ? " .
                           "AND maia_domains.domain = ?";
-                $sth = $dbh->query($select, array($uid, $domain));
-                $bad_domain = !$sth->fetchrow();
+                $sth = $dbh->prepare($select);
+                $res = $sth->execute(array($uid, $domain));
+                if (PEAR::isError($sth)) { 
+                    die($sth->getMessage()); 
+                } 
+
+                $bad_domain = !$res->fetchrow();
                 $smarty->assign("bad_domain", $bad_domain);
                 $sth->free();
             }
 
             if (($super || !$bad_domain) && !$bad_user) {
                 // Only add the new address if it doesn't already exist.
-                $select = "SELECT maia_user_id FROM users WHERE email = ?";
-                $sth = $dbh->query($select, array($new_email));
-                if (!$sth->fetchrow()) {
+                $sth = $dbh->prepare("SELECT maia_user_id FROM users WHERE email = ?");
+                $res = $sth->execute(array($new_email));
+                if (PEAR::isError($sth)) { 
+                    die($sth->getMessage()); 
+                } 
+
+                if (!$res->fetchrow()) {
                     $new_user_id = add_user($username, $new_email);
                     if ($new_user_id) {  // If there was an error, hopefully it was logged in the apache error log...
                       $succeeded = true;
                       if ($auth_method == "internal") {
                         // Generate a random password and assign it to the new user
                         list($password, $digest) = generate_random_password();
-                        $update = "UPDATE maia_users SET password = ? WHERE id = ?";
-                        $dbh->query($update, array($digest, $new_user_id));
+                        $sthu = $dbh->prepare("UPDATE maia_users SET password = ? WHERE id = ?");
+                        $sthu->execute(array($digest, $new_user_id));
+                        if (PEAR::isError($sth)) { 
+                            die($sth->getMessage()); 
+                        } 
+                        $sthu->free();
 
                         // Expand the newuser.tpl template to e-mail the new user his
                         // temporary login credentials.
-                            $select = "SELECT admin_email, newuser_template_file, reminder_login_url, internal_auth FROM maia_config WHERE id = 0";
-                            $sth2 = $dbh->query($select);
-                            if ($row = $sth2->fetchrow()) {
+                            $sth2 = $dbh->prepare("SELECT admin_email, newuser_template_file, reminder_login_url, internal_auth FROM maia_config WHERE id = 0");
+                            $res2 = $sth2->execute();
+                            if ($row = $res2->fetchrow()) {
                                 $admin_email = $row["admin_email"];
                                 $template_file = $row["newuser_template_file"];
                                 $login_url = $row["reminder_login_url"];
@@ -286,13 +299,17 @@
             if (!$super) {
 
               // Make a list of the domains this administrator can access.
-                $select = "SELECT domain " .
+                $sth = $dbh->prepare("SELECT domain " .
                           "FROM maia_domains, maia_domain_admins " .
                           "WHERE maia_domains.id = maia_domain_admins.domain_id " .
                           "AND maia_domain_admins.admin_id = ? " .
-                          "ORDER BY domain ASC";
-                $sth = $dbh->query($select, array($uid));
-                while ($row = $sth->fetchrow()) {
+                          "ORDER BY domain ASC");
+                $res = $sth->execute(array($uid));
+                if (PEAR::isError($sth)) { 
+                    die($sth->getMessage()); 
+                } 
+
+                while ($row = $res->fetchrow()) {
                     $domain_name[] = strtolower($row["domain"]);
                 }
                 $sth->free();
@@ -301,15 +318,18 @@
 
                     // List only the Regular (U)sers with e-mail addresses within the
                     // domains administered by this admin.
-                    $select = "SELECT DISTINCT maia_users.user_name, maia_users.id " .
+                    $sth = $dbh->prepare("SELECT DISTINCT maia_users.user_name, maia_users.id " .
                               "FROM maia_users, users " .
                               "WHERE maia_users.id = users.maia_user_id " .
                               "AND maia_users.user_level = 'U' " .
                               "AND users.email LIKE '%" . $dname . "' " .
-                              "ORDER BY user_name ASC";
-                    $sth = $dbh->query($select);
-                    
-                    while ($row = $sth->fetchrow()) {
+                              "ORDER BY user_name ASC");
+                    $res = $sth->execute();
+                    if (PEAR::isError($sth)) { 
+                        die($sth->getMessage()); 
+                    } 
+
+                    while ($row = $res->fetchrow()) {
                       if (preg_match($lookup, $row["user_name"])) {
                             $user[$row["user_name"]] = array(
                                 'maia_user_id' => $row["id"],
@@ -327,11 +347,15 @@
 
             } else {
               // The superadmin can list all users in all domains.
-               $select = "SELECT user_name, id " .
+               $ssth = $dbh->prepare("SELECT user_name, id " .
                           "FROM maia_users " .
-                          "ORDER BY user_name ASC";
-                $sth = $dbh->query($select);
-                while ($row = $sth->fetchrow()) {
+                          "ORDER BY user_name ASC");
+               $res = $sth->execute();
+               if (PEAR::isError($sth)) { 
+                   die($sth->getMessage()); 
+               } 
+
+               while ($row = $res->fetchrow()) {
                     if (preg_match($lookup, $row["user_name"])) {
                         $user[$row["user_name"]] = array(
                             'maia_user_id' => $row["id"],
@@ -347,15 +371,18 @@
 
             }
             // add cache stats to the $user array
-            $select = "select maia_mail_recipients.recipient_id, count(maia_mail_recipients.mail_id) as items, " .
+            $sth = $dbh->prepare("select maia_mail_recipients.recipient_id, count(maia_mail_recipients.mail_id) as items, " .
                       "maia_mail_recipients.type " .
                       "FROM maia_mail_recipients " .
                       "WHERE maia_mail_recipients.recipient_id = ? " .
                       "GROUP BY maia_mail_recipients.type, maia_mail_recipients.recipient_id " .
-                      "ORDER BY maia_mail_recipients.recipient_id";
-            $sth = $dbh->prepare($select);
+                      "ORDER BY maia_mail_recipients.recipient_id");
+
             foreach( $user as $key => $value ) {
-              $result = $dbh->execute($sth, array($value['maia_user_id']));
+              $result = $dbh->execute(array($value['maia_user_id']));
+              if (PEAR::isError($sth)) { 
+                  die($sth->getMessage()); 
+              } 
               while ($row = $result->fetchrow()) {
                 if ($row['type'] == "H") {
                     $user[$key]['ham'] = $row['items'];
@@ -369,8 +396,8 @@
                     $user[$key]['header'] = $row['items']; 
                 }
               }
-              $result->free();
             }
+            $sth->free();
             ksort($user);
             $smarty->assign('user', $user);
             if (count($user) > 0) {
