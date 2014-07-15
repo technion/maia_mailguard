@@ -82,6 +82,7 @@
     require_once ("./locale/$display_language/db.php");
     require_once ("./locale/$display_language/display.php");
     require_once ("./locale/$display_language/welcome.php");
+    require_once ("./locale/$display_language/quickstats.php");
     
     require_once ("smarty.php");
 
