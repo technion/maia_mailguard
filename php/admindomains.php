@@ -121,7 +121,11 @@
         GROUP BY maia_domains.domain, maia_mail_recipients.type, maia_domains.id, maia_users.id
         ORDER BY domain ASC
 ENDSELECT;
-        $sth = $dbh->query($select);
+        $sth = $dbh->prepare($select);
+        $res = $sth->execute();
+        if (PEAR::isError($sth)) { 
+            die($sth->getMessage()); 
+        }
     } else {
         $select = <<<ENDSELECT
         SELECT maia_domains.domain, maia_domains.id as domain_id, maia_users.id as maia_user_id,
@@ -134,13 +138,17 @@ ENDSELECT;
         GROUP BY maia_domains.domain, maia_mail_recipients.type, maia_domains.id, maia_users.id
         ORDER BY domain ASC
 ENDSELECT;
-        $sth = $dbh->query($select, array($uid));
+        $sth = $dbh->prepare($select);
+        $res = $sth->execute(array($uid));
+        if (PEAR::isError($sth)) { 
+            die($sth->getMessage()); 
+        }
     }
 
     $atleastone = false;
     $domains = array();
-    if ($sth->numrows() > 0) {
-        while ($row = $sth->fetchrow()) {
+    if ($res->numrows() > 0) {
+        while ($row = $res->fetchrow()) {
             $name = strtolower($row["domain"]);
             if (!isset($domains[$name])) {
               $domains[$name] = array (

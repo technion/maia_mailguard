@@ -40,17 +40,10 @@
      */
     function generate_random_password()
     {
+        require_once "scrypt.php";
+
         $password_length = 8;
 
-        for ($i = "A"; $i < "Z"; $i++) {
-            $chars[] = $i;
-        }
-        for ($i = "a"; $i < "z"; $i++) {
-            $chars[] = $i;
-        }
-        for ($i = "0"; $i < "9"; $i++) {
-            $chars[] = $i;
-        }
 
         $ur = fopen("/dev/urandom", "r");
         if(!$ur) {
@@ -64,8 +57,7 @@
 
         $password = base64_encode($urb);
 
-        $digest = md5($password);
-
+        $digest = Password::hash($password);
         return array($password, $digest);
     }
 

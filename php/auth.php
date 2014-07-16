@@ -351,34 +351,51 @@
      */
     function auth_internal($user, $pass)
     {
-	   if ($user == "") {  // Don't bother authenticating an empty username
-		return false;      // ticket #335
-	   }
+	if ($user == "") {  // Don't bother authenticating an empty username
+	    return false;      // ticket #335
+	}
         global $dbh;
+        require_once('maia_db/scrypt.php');
 
         $email = "";
         $testpass = md5($pass);
-        $sth = $dbh->prepare("SELECT users.email " .
+        $sth = $dbh->prepare("SELECT users.email, maia_users.password " .
                   "FROM users, maia_users " .
                   "WHERE users.id = maia_users.primary_email_id " .
-                  "AND maia_users.user_name = ? " .
-                  "AND maia_users.password = ?");
+                  "AND maia_users.user_name = ? "); 
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
 
-        $res = $sth->execute(array($user, $testpass));
+        $res = $sth->execute(array($user));
         if (PEAR::isError($sth)) {
             die($sth->getMessage());
         }
 
         if ($row = $res->fetchrow()) {
             $email = $row["email"];
+            $userpass = $row["password"];
         }
         $sth->free();
 
-        if (!empty($email)) {
+        if (empty($email)) {
+            return false;
+        }
+        if(strlen($userpass) == 32) {
+            // legacy password
+            if($userpass === $testpass) {
+                return $email;
+            } else {
+                return false;
+            }
+        }
+        // Only reached if scrypt password
+        if(Password::check($pass, $userpass)) {
             return $email;
         } else {
             return false;
         }
+
     }
 
 

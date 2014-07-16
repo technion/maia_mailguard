@@ -267,7 +267,10 @@
                    "FROM users, maia_users " .
                    "WHERE users.maia_user_id = maia_users.id " .
                    "AND users.id = ?");
-        $res = $sth->prepare(array($address_id));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        $res = $sth->execute(array($address_id));
         if (PEAR::isError($sth)) {
             die($sth->getMessage());
         }

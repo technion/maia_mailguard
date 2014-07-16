@@ -243,7 +243,7 @@ CREATE TABLE maia_users (
    language			varchar(10) DEFAULT 'en' NOT NULL,
    charset			varchar(20) DEFAULT 'ISO-8859-1' NOT NULL,
    spamtrap			char(1) DEFAULT 'N' NOT NULL, -- 'Y', 'N'
-   password			varchar(32), -- 32-byte MD5 hash
+   password			varchar(128), -- scrypt()
    auto_whitelist		char(1) DEFAULT 'Y' NOT NULL, -- 'Y', 'N'
    items_per_page		int unsigned DEFAULT '50' NOT NULL,
    spam_quarantine_sort		char(2) DEFAULT 'XA' NOT NULL, -- [XDFS][AD]
