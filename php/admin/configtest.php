@@ -259,6 +259,16 @@
       }
       print_row("Multibyte String Support", $result, $status);
 
+     // scrypt support
+     if(function_exists( 'scrypt')) {
+         $result = "scrypt() support available";
+         $status = OK;
+      } else {
+         $result = "scrypt() not available. Use \"pecl install scrypt\"";
+         $status = ERROR;
+      }
+      print_row("scrypt() Support", $result, $status);
+
       // iconv support
       $have_iconv = false;
       if(function_exists( 'iconv')) {
