@@ -101,14 +101,17 @@
        exit();
     }
 
-    $select = "SELECT virus_name, virus_alias, virus_id " .
+    $sth = $dbh->prepare("SELECT virus_name, virus_alias, virus_id " .
               "FROM maia_viruses, maia_virus_aliases " .
               "WHERE maia_viruses.id = maia_virus_aliases.virus_id " .
-              "ORDER BY virus_alias ASC";
-    $sth = $dbh->query($select);
-    $smarty->assign('numrows', $sth->numrows());
+              "ORDER BY virus_alias ASC");
+    $res = $sth->execute();
+    if (PEAR::isError($sth)) { 
+        die($sth->getMessage()); 
+    } 
+    $smarty->assign('numrows', $res->numrows());
     $viruses = array();
-    while ($row = $sth->fetchrow()) {
+    while ($row = $res->fetchrow()) {
         $viruses[] = array(
             'virus_name' => $row["virus_name"],
             'virus_alias' => $row["virus_alias"],
@@ -119,7 +122,7 @@
     $smarty->assign('viruses', $viruses);
 
     $select = "SELECT virus_name, id FROM maia_viruses ORDER BY virus_name ASC";
-    $smarty->assign('rows', $dbh->getall($select));
+    $smarty->assign('rows', $dbh->queryall($select));
 
     $smarty->display('adminviruses.tpl');
     

@@ -101,14 +101,17 @@
        exit();
     }
 
-    $select = "SELECT language_name, abbreviation, id " .
+    $sth = $dbh->prepare("SELECT language_name, abbreviation, id " .
               "FROM maia_languages " .
               "WHERE installed = 'Y' " .
-              "ORDER BY language_name ASC";
-    $sth = $dbh->query($select);
-    $smarty->assign('rowcount', $sth->numrows());
+              "ORDER BY language_name ASC");
+    $res = $sth->execute();
+    if (PEAR::isError($sth)) { 
+        die($sth->getMessage()); 
+    } 
+    $smarty->assign('rowcount', $res->numrows());
     $languages = array();
-    while ($row = $sth->fetchrow()) {
+    while ($row = $res->fetchrow()) {
         $languages[] = array(
             'language_name' => $row["language_name"],
             'language_abbrev' => strtolower($row["abbreviation"]),
@@ -142,27 +145,33 @@
 
     if ($atleastone) {
 
-        $select = "SELECT language_name, abbreviation, id " .
+        $sth = $dbh->prepare("SELECT language_name, abbreviation, id " .
                   "FROM maia_languages " .
                   "WHERE installed = 'N' AND abbreviation IN (" . implode(',', $phlist) . ") " .
-                  "ORDER BY language_name ASC";
-        $sth = $dbh->query($select, array_keys($dirlist));
-        while ($row = $sth->fetchrow()) {
+                  "ORDER BY language_name ASC");
+        $res = $sth->execute(array_keys($dirlist));
+        if (PEAR::isError($sth)) { 
+            die($sth->getMessage()); 
+        } 
+        while ($row = $res->fetchrow()) {
             $dirlist[$row["abbreviation"]] = array(
                 'language_name' => $row["language_name"],
                 'language_abbrev' => strtolower($row["abbreviation"]),
             );
         }
-
+        $sth->free();
         // Don't offer languages that aren't physically installed yet
-        $select = "SELECT language_name, abbreviation, id " .
+        $sth = $dbh->prepare("SELECT language_name, abbreviation, id " .
                   "FROM maia_languages " .
                   "WHERE installed = 'Y' AND abbreviation IN (" . implode(',', $phlist) . ") " .
-                  "ORDER BY language_name ASC";
-        $sth = $dbh->query($select, array_keys($dirlist));
+                  "ORDER BY language_name ASC");
+        $res = $sth->execute(array_keys($dirlist));
+        if (PEAR::isError($sth)) { 
+            die($sth->getMessage()); 
+        } 
 
         //$languages2 = array();
-        while ($row = $sth->fetchrow()) {
+        while ($row = $res->fetchrow()) {
             unset($dirlist[$row['abbreviation']]);
         }
         $sth->free();
