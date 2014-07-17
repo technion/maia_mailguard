@@ -90,7 +90,9 @@
                                                (isset($row["totalsize"]) ? $row["totalsize"] : 0),
                                                (isset($row["items"]) ? $row["items"] : 0),
                                                $user_id));
-                    sql_check($res, "update_mail_stats", $insert);
+                    if (PEAR::isError($sth)) { 
+                        die($sth->getMessage()); 
+                    } 
                 }
                 $sth2->free();
             }

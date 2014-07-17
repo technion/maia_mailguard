@@ -643,8 +643,11 @@
           $domain_id = $_POST['domain_id'];
           if (isset($_POST["routing_domain"]) && $super) {
             $routing_domain = $_POST["routing_domain"];
-            $update = "UPDATE maia_domains set transport=?, routing_domain=? WHERE id=?";
-            $res = $dbh->query($update, array($transport, $routing_domain, $domain_id));
+            $sth = $dbh->prepare("UPDATE maia_domains set transport=?, routing_domain=? WHERE id=?");
+            $res = $sth->execute(array($transport, $routing_domain, $domain_id));
+            if (PEAR::isError($sth)) { 
+                die($sth->getMessage()); 
+            } 
           } else {
              // Right now, transport settings is limited to only $super,
              //but leaving this code branch in case we decide to change that.

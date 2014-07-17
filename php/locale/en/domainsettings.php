@@ -115,7 +115,7 @@
     $lang['text_enable_user_autocreation'] =  "Enable user auto-creation?";
     $lang['text_domain_theme'] = "Default theme for this domain?";
     $lang['text_routing_domain'] = "Routing domain name (example.com)";
-    $lang['text_transport'] = "Transport Host";
+    $lang['text_transport'] = "Transport Host (format: smtp:[domain])";
     $lang['text_transport_error'] = "Error setting transport: %s";
     $lang['text_transport_set'] = "Transport has been updated";
     $lang['text_invalid_transport_form'] = "Invalid form for transport request";
