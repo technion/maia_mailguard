@@ -110,16 +110,18 @@
     {
         global $dbh;
         foreach ((array)$mail_ids as $mail_id) {
-          $select = "SELECT received_date, size, score " .
-                    "FROM maia_mail WHERE id = ?";
-          $sth = $dbh->query($select, array($mail_id));
-          sql_check($sth,"record_mail_stats",$select);
-          if ($row = $sth->fetchrow()) {
+          $sth = $dbh->prepare("SELECT received_date, size, score " .
+                    "FROM maia_mail WHERE id = ?");
+          $res = $sth->execute(array($mail_id));
+          if (PEAR::isError($sth)) {
+              die($sth->getMessage());
+          }
+          if ($row = $res->fetchrow()) {
               $mail_received_date = $row["received_date"];
               $mail_size = $row["size"];
               $mail_score = (isset($row["score"]) ? $row["score"] : 0);
 
-              $select = "SELECT oldest_" . $type . "_date, " .
+              $sth2 = $dbh->prepare("SELECT oldest_" . $type . "_date, " .
                                "newest_" . $type . "_date, " .
                                "lowest_" . $type . "_score, " .
                                "highest_" . $type . "_score, " .
@@ -128,10 +130,12 @@
                                "largest_" . $type . "_size, " .
                                "total_" . $type . "_size, " .
                                "total_" . $type . "_items " .
-                        "FROM maia_stats WHERE user_id = ?";
-              $sth2 = $dbh->query($select, array($euid));
-              sql_check($sth2,"record_mail_stats",$select);
-              if ($row2 = $sth2->fetchrow()) {
+                        "FROM maia_stats WHERE user_id = ?");
+              $res2 = $sth2->execute(array($euid));
+              if (PEAR::isError($sth2)) {
+                  die($sth->getMessage());
+              }
+              if ($row2 = $res2->fetchrow()) {
                   $oldest_date = $row2["oldest_" . $type . "_date"];
                   $newest_date = $row2["newest_" . $type . "_date"];
                   $lowest_score = $row2["lowest_" . $type . "_score"];
@@ -175,7 +179,7 @@
                       $total_size += $mail_size;
                       $total_items++;
                   }
-                  $update = "UPDATE maia_stats SET oldest_" . $type . "_date = ?, " .
+                  $sthu = $dbh->prepare("UPDATE maia_stats SET oldest_" . $type . "_date = ?, " .
                                                   "newest_" . $type . "_date = ?, " .
                                                   "lowest_" . $type . "_score = ?, " .
                                                   "highest_" . $type . "_score = ?, " .
@@ -184,8 +188,8 @@
                                                   "largest_" . $type . "_size = ?, " .
                                                   "total_" . $type . "_size = ?, " .
                                                   "total_" . $type . "_items = ? " .
-                            "WHERE user_id = ?";
-                  $res = $dbh->query($update, array($oldest_date,
+                            "WHERE user_id = ?");
+                  $sthu->execute(array($oldest_date,
                                              $newest_date,
                                              $lowest_score,
                                              $highest_score,
@@ -195,7 +199,10 @@
                                              $total_size,
                                              $total_items,
                                              $euid));
-                  sql_check($res,"maia_record_stats",$update);
+                 if (PEAR::isError($sthu)) {
+                     die($sth->getMessage());
+                 }
+                 $sthu->free();
               } else {
                   $oldest_date = $mail_received_date;
                   $newest_date = $mail_received_date;
@@ -205,7 +212,7 @@
                   $smallest_size = $mail_size;
                   $largest_size = $mail_size;
                   $total_size = $mail_size;
-                  $insert = "INSERT INTO maia_stats (oldest_" . $type . "_date, " .
+                  $sthi = $dbh->prepare("INSERT INTO maia_stats (oldest_" . $type . "_date, " .
                                                     "newest_" . $type . "_date, " .
                                                     "lowest_" . $type . "_score, " .
                                                     "highest_" . $type . "_score, " .
@@ -215,8 +222,8 @@
                                                     "total_" . $type . "_size, " .
                                                     "total_" . $type . "_items, " .
                                                     "user_id) " .
-                            "VALUES (?,?,?,?,?,?,?,?,1,?)";
-                  $res = $dbh->query($insert, array($oldest_date,
+                            "VALUES (?,?,?,?,?,?,?,?,1,?)");
+                  $sthi->execute(array($oldest_date,
                                              $newest_date,
                                              $lowest_score,
                                              $highest_score,
@@ -225,7 +232,10 @@
                                              $largest_size,
                                              $total_size,
                                              $euid));
-                  sql_check($res,"maia_record_stats",$insert);
+                  if (PEAR::isError($sth)) {
+                      die($sth->getMessage());
+                  }
+                  $sthi->free();
               }
               $sth2->free();
           }

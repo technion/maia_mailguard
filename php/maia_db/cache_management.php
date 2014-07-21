@@ -6,14 +6,13 @@
     function delete_mail($mail_ids)
     {
         global $dbh;
-
         if (count($mail_ids) < 1) { #not sure if this  is possible, but
             return;                  # we should not do anything if the list is empty
         }
 
         // Delete any references to recipients
         $sth = $dbh->prepare("DELETE FROM maia_mail_recipients WHERE mail_id IN (?" . str_repeat(',?', count($mail_ids) - 1) . ")");
-        $res = $dbh->execute(array($mail_ids));
+        $res = $sth->execute(array($mail_ids));
         if (PEAR::isError($sth)) {
             die($sth->getMessage());
         }
@@ -76,6 +75,9 @@
         $delete .= '?' . str_repeat(',?', count($mail_ids) - 1);
         $delete .= ")";
         $sth = $dbh->prepare($delete);
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
 
         $res = $sth->execute(array_merge((array)$user_id, (array)$mail_ids));
         if (PEAR::isError($sth)) {
@@ -86,26 +88,26 @@
 
         // If there are no other recipients referenced by each mail item,
         // delete it.
-
-        $select = "SELECT recipient_id, mail_id, maia_mail.id ".
+        $select = "SELECT maia_mail.id ".
         "FROM      maia_mail " .
         "LEFT JOIN maia_mail_recipients " .
                "ON maia_mail.id = maia_mail_recipients.mail_id " .
         "WHERE maia_mail.id IN (?" . str_repeat(',?', count($mail_ids) - 1) .") " .
           "AND mail_id IS NULL";
-        $sth = $dbh->prepare($select);
-        $res = $sth->execute(array($mail_ids));
-        if (PEAR::isError($sth)) {
-            die($sth->getMessage());
+        $sth2 = $dbh->prepare($select);
+
+        if (PEAR::isError($sth2)) {
+            die($sth2->getMessage());
         }
-
+        $res2 = $sth2->execute((array)$mail_ids);
+        if (PEAR::isError($res2)) {
+            die($res2->getMessage());
+        }
         $deletions = array();
-
-        while ($row = $res->fetchrow() ) {
+        while ($row = $res2->fetchrow() ) {
             array_push($deletions, $row['id']);
         }
-        $sth->free();
-
+        $sth2->free();
         if (count($deletions) > 0) {
           delete_mail($deletions);
         }
