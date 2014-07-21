@@ -129,12 +129,11 @@
             die($sth->getMessage());
         }
          
-
         $page['data'] = array();
-#        while ($res->fetchInto($row, $fetchMode)) {
-#           $page['data'][] = $row;
-#        }
-        $page['data'][] = $res->fetchRow();
+
+        while($row = $res->fetchRow()) {
+            $page['data'][] = $row;
+        }
         if ($disabled) {
             $page['links'] = '';
             $page['page_numbers'] = array(
@@ -142,6 +141,7 @@
                 'total'   => 1
             );
         }
+
         return $page;
     }
 
