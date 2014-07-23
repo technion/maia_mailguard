@@ -89,7 +89,7 @@
         $formVars[$varname] = trim($value);
     }
 
-    $update = "UPDATE maia_config SET enable_user_autocreation = ?, " .
+    $sthu = $dbh->prepare("UPDATE maia_config SET enable_user_autocreation = ?, " .
                                      "enable_false_negative_management = ?, " .
                                      "enable_stats_tracking = ?, " .
                                      "enable_virus_scanning = ?, " .
@@ -148,8 +148,8 @@
                                      // "reporter_sitename = ?, " .
                                      // "reporter_username = ?, " .
                                      // "reporter_password = ? " .
-              "WHERE id = 0";
-    $dbh->query($update, array($formVars["enable_user_autocreation"],
+              "WHERE id = 0");
+    $sthu->execute(array($formVars["enable_user_autocreation"],
                                $formVars["enable_false_negative_management"],
                                $formVars["enable_stats_tracking"],
                                $formVars["enable_virus_scanning"],
@@ -209,13 +209,21 @@
                                // strtolower($formVars["reporter_username"]),
                                // $formVars["reporter_password"]
                                ));
+    if (PEAR::isError($sthu)) {  
+        die($sthu->getMessage());  
+    } 
+    $sthu->free();
 
     if ($auth_method == "internal") {
-        $update = "UPDATE maia_config SET internal_auth = ?, " .
+        $sthu = $dbh->prepare("UPDATE maia_config SET internal_auth = ?, " .
                                          "newuser_template_file = ? " .
-                  "WHERE id = 0";
-        $dbh->query($update, array($formVars["internal_auth"],
+                  "WHERE id = 0");
+        $sthu->execute(array($formVars["internal_auth"],
                                    $formVars["newuser_template_file"]));
+        if (PEAR::isError($sthu)) {  
+            die($sthu->getMessage());  
+        }
+        $sthu->free(); 
     }
 
     // Return to the system administration page
