@@ -140,7 +140,7 @@ class MessageCache {
     }
     
     function set_sort_order($sort, $euid, $msid) {
-        global $_GET;
+        global $_GET, $dbh;
          $field = $this->get_sort_field();
 
          $sort = strtoupper(trim($_GET["sort"]));
