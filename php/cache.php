@@ -489,7 +489,7 @@ class MessageCache {
                                    'mode'    => 'Sliding',
                                    'delta'   => 5,
                                    'perPage' => $per_page,
-                                   'totalItems' => $numRows,
+                                   'totalItems' => $numRows['cnt'],
                                    );
 
             $paged_data = Pager_Wrapper_DB($this->dbh, $this->select_stmt, $pagerOptions, null, MDB2_FETCHMODE_ASSOC, array($euid));

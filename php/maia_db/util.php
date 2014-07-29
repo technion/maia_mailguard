@@ -121,7 +121,7 @@
         list($page['from'], $page['to']) = $pager->getOffsetByPageId();
 
 	if (!$disabled) {
-            $db->setLimit($page['from']-1, $pager_options['perPage']);
+           $db->setLimit($pager_options['perPage'], $page['from']);
         }
         $sth = $db->prepare($query);
         $res = $sth->execute($dbparams);
