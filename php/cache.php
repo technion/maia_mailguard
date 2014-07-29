@@ -528,6 +528,9 @@ class MessageCache {
                 if ($this->type == 'attachment' ) {
                     $bnames = $this->get_banned_names($row['id']);
                     foreach ($bnames as $bname) {
+                       if(!isset($rows[$count]['file'])) {
+                           $rows[$count]['file'] = "";
+                       }
                        $rows[$count]['file'] .= $bname . "<br>";
                     }
                 } elseif ($this->type == 'virus') {
