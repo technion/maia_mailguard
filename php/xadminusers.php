@@ -350,11 +350,10 @@
                $ssth = $dbh->prepare("SELECT user_name, id " .
                           "FROM maia_users " .
                           "ORDER BY user_name ASC");
-               $res = $sth->execute();
-               if (PEAR::isError($sth)) { 
+               $res = $ssth->execute();
+               if (PEAR::isError($ssth)) { 
                    die($sth->getMessage()); 
                } 
-
                while ($row = $res->fetchrow()) {
                     if (preg_match($lookup, $row["user_name"])) {
                         $user[$row["user_name"]] = array(
@@ -379,7 +378,7 @@
                       "ORDER BY maia_mail_recipients.recipient_id");
 
             foreach( $user as $key => $value ) {
-              $result = $dbh->execute(array($value['maia_user_id']));
+              $result = $sth->execute(array($value['maia_user_id']));
               if (PEAR::isError($sth)) { 
                   die($sth->getMessage()); 
               } 
