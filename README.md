@@ -1,2 +1,6 @@
 This is a fork of Maia mailguard.
-Due to licensing uncertainty this is not for use anywhere at present.
+This is NOT an official release, however, it is currently actively maintained.
+
+Please see the original license file regarding rebranding restrictions. However, it is clearly stated distributing modified versions is allowed.
+
+
