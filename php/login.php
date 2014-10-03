@@ -147,7 +147,7 @@
    $languages = array(); 
    
    if ($res->numrows() > 0) {
-      while ($row = $sth->fetchrow()) {
+      while ($row = $res->fetchrow()) {
          $languages[$row["abbreviation"]] = $row["language_name"];
       }
    } 
