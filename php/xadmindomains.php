@@ -123,9 +123,13 @@
                   "FROM maia_domains " .
                   "WHERE domain <> '@.' " .
                   "AND id IN (" . implode(',',$formVars) . ")";
-        $sth = $dbh->query($select);
+        $sth = $dbh->prepare($select);
+        $res = $sth->execute();
+        if (PEAR::isError($sth)) {  
+            die($sth->getMessage());  
+        } 
 
-        while ($row = $sth->fetchrow()) {
+        while ($row = $res->fetchrow()) {
             delete_domain($row["id"]);
             if ($_POST['deleteaddresses']) {
               $result = delete_domain_addresses($row['domain']);

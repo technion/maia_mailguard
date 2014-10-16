@@ -264,11 +264,11 @@
 
         // Find and delete the default user records associated with this domain
         $sth = $dbh->prepare("SELECT maia_user_id FROM users WHERE maia_domain_id = ?");
-        $res = $dbh->execute(array($domain_id));
+        $res = $sth->execute(array($domain_id));
         if (PEAR::isError($sth)) {
             die($sth->getMessage());
         }
-        if ($row = $sth->fetchrow()) {
+        if ($row = $res->fetchrow()) {
             $maia_user_id = $row["maia_user_id"];
             delete_user($maia_user_id);
         }
