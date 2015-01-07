@@ -403,9 +403,9 @@ sub ca($) {
 }
 
 $myproduct_name = 'maiad';
-$myversion_id = '1.0.3.1524'; $myversion_date = '20110531';
+$myversion_id = '1.0.4.1524'; $myversion_date = '20150107';
 
-$myversion = "Maia Mailguard 1.0.3.1524";
+$myversion = "Maia Mailguard 1.0.4.1524";
 $myversion_id_numeric =  # x.yyyzzz, allows numerical comparision, like Perl $]
   sprintf("%8.6f", $1 + ($2 + $3/1000)/1000)
   if $myversion_id =~ /^(\d+)(?:\.(\d*)(?:\.(\d*))?)?(.*)$/;

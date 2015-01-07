@@ -1,4 +1,4 @@
-# Sample maiad.conf file for Maia Mailguard 1.0.3
+# Sample maiad.conf file for Maia Mailguard 1.0.4
 
 use strict;
 
@@ -76,7 +76,7 @@ $X_HEADER_TAG = 'X-Virus-Scanned';
 #   * Will appear in the headers of filtered mail
 #   * Typically the name of the mail filter, e.g. 'Maia Mailguard'
 
-$X_HEADER_LINE = "Maia Mailguard 1.0.3";
+$X_HEADER_LINE = "Maia Mailguard 1.0.4";
 
 
 # Mail domain ($mydomain)
