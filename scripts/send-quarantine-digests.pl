@@ -148,7 +148,7 @@ $titles = { 'spam'        =>  "Spam Quarantine",
             'header'  =>  "Invalid Email Headers",
             'ham'         =>  "Delivered Email"
 } if !defined($titles);
-@report_order = ('spam','ham','virus','attachment','header') if !defined(@report_order);
+@report_order = ('spam','ham','virus','attachment','header') if !(@report_order);
 
 my $dbh;
 
