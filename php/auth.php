@@ -320,7 +320,13 @@
 
         $email = "";
         $auth_sth = $auth_dbh->query($select, array($user));
-        if ($row = $auth_sth->fetchRow())
+        $auth_sth = $auth_dbh->prepare($select);
+        $auth_res = $auth_sth->execute($user);
+	if (PEAR::isError($auth_sth)) {
+            die($auth_sth->getMessage());
+        }
+
+        if ($row = $auth_res->fetchRow())
         {
             $dbpass = $row[$auth_sql_password_column];
             $email = $row[$auth_sql_email_column];
