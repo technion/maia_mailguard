@@ -319,9 +319,8 @@
                   $auth_sql_table . " WHERE " . $auth_sql_username_column . " = ?";
 
         $email = "";
-        $auth_sth = $auth_dbh->query($select, array($user));
         $auth_sth = $auth_dbh->prepare($select);
-        $auth_res = $auth_sth->execute($user);
+        $auth_res = $auth_sth->execute(array($user));
 	if (PEAR::isError($auth_sth)) {
             die($auth_sth->getMessage());
         }
