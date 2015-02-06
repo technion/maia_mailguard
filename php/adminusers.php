@@ -239,7 +239,7 @@
                       "AND maia_users.user_level = 'U' " .
                       "ORDER BY users.email ASC";
             $sth = $dbh->prepare($select);
-            $res = $sth->execute($id);
+            $res = $sth->execute();
             if (PEAR::isError($sth)) {
                 die($sth->getMessage());
             }

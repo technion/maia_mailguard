@@ -108,7 +108,7 @@
                      "ham_cache_expiry_period " .
               "FROM maia_config WHERE id = 0";
     $sth = $dbh->prepare($select);
-    $res = $sth->execute($id);
+    $res = $sth->execute();
     if (PEAR::isError($sth)) {
         die($sth->getMessage());
     }
