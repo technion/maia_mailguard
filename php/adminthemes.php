@@ -137,7 +137,7 @@
         die($sth->getMessage());
     }
 	$smarty->assign('rowcount', $sth->numrows());
-	while ($row = $sth->fetchrow()) {
+	while ($row = $res->fetchrow()) {
         $installed_themes[] = array('name' => $row['name'], 'path'=>$row['path'], 'id'=>$row['id']);
         unset ($dirlist[$row['path']]);
     }
