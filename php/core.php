@@ -100,7 +100,7 @@
       /*  Now ABSPATH and URLADDR are set.  */
 
      ini_set('include_path',ini_get('include_path').':./libs:');  
-     //require_once('Log.php');
+     require_once('Log.php');
      require_once("config.php");
 
      require_once ("constants.php");
