@@ -238,8 +238,12 @@
                       "AND users.maia_user_id = maia_users.id " .
                       "AND maia_users.user_level = 'U' " .
                       "ORDER BY users.email ASC";
-            $sth = $dbh->query($select);
-            while ($row = $sth->fetchrow()) {
+            $sth = $dbh->prepare($select);
+            $res = $sth->execute($id);
+            if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+            }
+            while ($row = $res->fetchrow()) {
                 $delete_address[$row["email"]] = $row["id"];
             }
             $res->free();
