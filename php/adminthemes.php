@@ -131,7 +131,11 @@
     $installed_themes=array();
     //get list of themes listed in database
 	$select = "SELECT id,name,path from maia_themes";
-	$sth = $dbh->query($select);
+    $sth = $dbh->prepare($select);
+    $res = $sth->execute();
+    if (PEAR::isError($sth)) {
+        die($sth->getMessage());
+    }
 	$smarty->assign('rowcount', $sth->numrows());
 	while ($row = $sth->fetchrow()) {
         $installed_themes[] = array('name' => $row['name'], 'path'=>$row['path'], 'id'=>$row['id']);
