@@ -109,8 +109,13 @@
     $select = "SELECT banner_title, use_logo, use_icons, logo_file, logo_url, logo_alt_text, " .
               "enable_false_negative_management, enable_stats_tracking, enable_user_autocreation " .
               "FROM maia_config WHERE id = 0";
-    $sth = $dbh->query($select);
-    if ($row = $sth->fetchrow()) {
+
+    $sth = $dbh->prepare($select);
+    $res = $sth->execute();
+    if (PEAR::isError($sth)) {
+        die($sth->getMessage());
+    }
+    if ($row = $res->fetchrow()) {
         $banner_title = $row["banner_title"];
         $use_logo = ($row["use_logo"] == 'Y');
         $use_icons = ($row["use_icons"] == 'Y');
