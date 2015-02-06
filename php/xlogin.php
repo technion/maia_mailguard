@@ -167,14 +167,25 @@
           $select = "SELECT recipient_id FROM maia_mail_recipients " .
                     "WHERE recipient_id=? " .
                     "AND token=?";
-          $sth = $dbh->query($select, array($euid,$token));
-          if ($row = $sth->fetchrow()) {
+
+          $sth = $dbh->prepare($select);
+          $res = $sth->execute(array($euid,$token));
+          if (PEAR::isError($sth)) {
+              die($sth->getMessage());
+          }
+
+          if ($row = $res->fetchrow()) {
              $select = "SELECT data FROM maia_tokens " .
                         "WHERE data=? " .
                         "AND token=? " .
                         "AND token_system='digest'" ;
-              $sth = $dbh->query($select, array($maia_user_id,$user_token));
-              if ($row = $sth->fetchrow()) {
+
+              $sth = $dbh->prepare($select);
+              $res = $sth->execute(array($maia_user_id,$user_token));
+              if (PEAR::isError($sth)) {
+                  die($sth->getMessage());
+              }
+              if ($row = $res->fetchrow()) {
                 $uid = $maia_user_id;
                 $authenticated = true;
               } else {
@@ -188,8 +199,12 @@
                     "WHERE data=? " .
                     "AND token=? " .
                     "AND token_system='digest'" ;
-          $sth = $dbh->query($select, array($maia_user_id,$token));
-          if ($row = $sth->fetchrow()) {
+          $sth = $dbh->prepare($select);
+          $res = $sth->execute(array($maia_user_id,$user_token));
+          if (PEAR::isError($sth)) {
+              die($sth->getMessage());
+          }
+          if ($row = $res->fetchrow()) {
             $uid = $maia_user_id;
             $authenticated = true;
           } else {
