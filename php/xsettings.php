@@ -94,15 +94,21 @@
                         "enable_spamtraps, enable_username_changes, " .
                         "enable_address_linking " .
                  "FROM maia_config WHERE id = 0";
-    $sth = $dbh->query($select);
-    if ($row = $sth->fetchrow()) {
+
+    $sth = $dbh->prepare($select);
+    $res = $sth->execute();
+    if (PEAR::isError($sth)) {
+        die($sth->getMessage());
+    }
+
+    if ($row = $res->fetchrow()) {
            $enable_charts = ($row["enable_charts"] == 'Y');
            $reminder_threshold_count = $row["reminder_threshold_count"];
            $enable_spamtraps = ($row["enable_spamtraps"] == 'Y');
            $enable_username_changes = ($row["enable_username_changes"] == 'Y');
            $enable_address_linking = ($row["enable_address_linking"] == 'Y');
     }
-    $sth->free();
+    $res->free();
     $super = is_superadmin($uid);
 
     // set up domain variables if the current focus is a domain user
@@ -387,32 +393,52 @@
             $reminder = (trim($_POST["reminder"]) == "yes" ? "Y" : "N");
             if ($reminder_threshold_count > 0) {
                 $update = "UPDATE maia_users SET reminders = ? WHERE id = ?";
-                $dbh->query($update, array($reminder, $euid));
+                $sth = $dbh->prepare($update);
+                $res = $sth->execute(array($reminder, $euid));
+                if (PEAR::isError($sth)) {
+                    die($sth->getMessage());
+                }
             }
         }
         if (isset($_POST["charts"])) {
             $charts = (trim($_POST["charts"]) == "yes" ? "Y" : "N");
             if ($enable_charts) {
                 $update = "UPDATE maia_users SET charts = ? WHERE id = ?";
-                $dbh->query($update, array($charts, $euid));
+                $sth = $dbh->prepare($update);
+                $res = $sth->execute(array($charts, $euid));
+                if (PEAR::isError($sth)) {
+                    die($sth->getMessage());
+                }
             }
         }
         if (isset($_POST["spamtrap"])) {
             $spamtrap = (trim($_POST["spamtrap"]) == "yes" ? "Y" : "N");
             if ($enable_spamtraps) {
                 $update = "UPDATE maia_users SET spamtrap = ? WHERE id = ?";
-                $dbh->query($update, array($spamtrap, $euid));
+                $sth = $dbh->prepare($update);
+                $res = $sth->execute(array($spamtrap, $euid));
+                if (PEAR::isError($sth)) {
+                    die($sth->getMessage());
+                }
             }
         }
         if (isset($_POST["auto_whitelist"])) {
             $auto_whitelist = (trim($_POST["auto_whitelist"]) == "yes" ? "Y" : "N");
             $update = "UPDATE maia_users SET auto_whitelist = ? WHERE id = ?";
-            $dbh->query($update, array($auto_whitelist, $euid));
+            $sth = $dbh->prepare($update);
+            $res = $sth->execute(array($auto_whitelist, $euid));
+            if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+            }
         }
         if (isset($_POST["items_per_page"])) {
             $items_per_page = $_POST["items_per_page"];
             $update = "UPDATE maia_users SET items_per_page = ? WHERE id = ?";
-            $dbh->query($update, array($items_per_page, $euid));
+            $sth = $dbh->prepare($update);
+            $res = $sth->execute(array($items_per_page, $euid));
+            if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+            }
         }
         if (isset($_POST["digest_interval"])) {
             $quarantine_digest_interval = intval($_POST["digest_interval"]) * 60; //adjust from hours displayed to minutes in database

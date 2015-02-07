@@ -102,13 +102,22 @@
         $select = "SELECT language_name, abbreviation, id " .
                   "FROM maia_languages " .
                   "WHERE abbreviation = ?";
-        $sth = $dbh->query($select, array($lang_abbrev));
+
+        $sth = $dbh->prepare($select);
+        $res = $sth->execute($lang_abbrev);
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
 
         // Make the language available to users
-        if($sth->numrows()) {
+        if($res->numrows()) {
             if (is_dir($lang_dir . "/" . $lang_abbrev)) {
                 $update = "UPDATE maia_languages SET installed = 'Y' WHERE abbreviation = ?";
-                $dbh->query($update, array($lang_abbrev));
+                $sth = $dbh->prepare($update);
+                $res = $sth->execute($lang_abbrev);
+                if (PEAR::isError($sth)) {
+                    die($sth->getMessage());
+                }
             }
             $d->close();
         } else {
@@ -119,7 +128,11 @@
                     $lang_name = "N/A";
                 }
                 $insert = "INSERT INTO maia_languages (language_name, abbreviation, installed) VALUES (?, ?, 'Y')";
-                $dbh->query($insert, array($lang_name, $lang_abbrev));
+                $sth = $dbh->prepare($insert);
+                $res = $sth->execute(array($lang_name, $lang_abbrev));
+                if (PEAR::isError($sth)) {
+                    die($sth->getMessage());
+                }
             }
             $d->close();
         }
@@ -136,28 +149,43 @@
         $select = "SELECT language_name, abbreviation, id " .
                   "FROM maia_languages " .
                   "WHERE installed = 'Y' AND abbreviation <> ?";
-        $sth = $dbh->query($select, array(strtolower($default_display_language)));
+        $sth = $dbh->prepare($select);
+        $res = $sth->execute(array(strtolower($default_display_language)));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
 
-        while ($row = $sth->fetchrow()) {
+        while ($row = $res->fetchrow()) {
 
             $lang_name = $row["language_name"];
             $lang_abbrev = strtolower($row["abbreviation"]);
             $lang_id = $row["id"];
 
             if (isset($formVars[$lang_abbrev]) && trim($formVars[$lang_abbrev]) == $lang_id) {
+                    // Make this language unavailable to users
+                $update = "UPDATE maia_languages SET installed = 'N' WHERE id = ?";
 
-                // Make this language unavailable to users
-         	$update = "UPDATE maia_languages SET installed = 'N' WHERE id = ?";
-        	$dbh->query($update, array($lang_id));
 
-        	// Reset all users who used this language to the default
-        	$update = "UPDATE maia_users SET language = ? WHERE language = ?";
-        	$dbh->query($update, array($default_display_language, $lang_abbrev));
+                $sth = $dbh->prepare($update);
+                $res = $sth->execute($lang_id);
+                if (PEAR::isError($sth)) {
+                    die($sth->getMessage());
+                }
+
+                // Reset all users who used this language to the default
+        	    $update = "UPDATE maia_users SET language = ? WHERE language = ?";
+
+
+                $sth = $dbh->prepare($update);
+                $res = $sth->execute(array($default_display_language, $lang_abbrev));
+                if (PEAR::isError($sth)) {
+                    die($sth->getMessage());
+                }
                 $_SESSION["display_language"] = $default_display_language;
             }
         }
 
-        $sth->free();
+        $res->free();
 
     }
 
