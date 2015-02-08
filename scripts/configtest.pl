@@ -254,7 +254,7 @@
 
     my @databases = (
 	
-	    {product => "MySQL Server", minver => "5.0.0", 
+	    {product => "MySQL Server", minver => "", 
 	     verquery => "SELECT VERSION()", regexp => '^(\d+\.\d+\.\d+)'},
 	
 	    {product => "PostgreSQL Server", minver => "8.4", 
