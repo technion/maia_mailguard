@@ -107,8 +107,12 @@
                      "oversize_policy, " .
                      "ham_cache_expiry_period " .
               "FROM maia_config WHERE id = 0";
-    $sth = $dbh->query($select);
-    if ($row = $sth->fetchrow()) {
+    $sth = $dbh->prepare($select);
+    $res = $sth->execute();
+    if (PEAR::isError($sth)) {
+        die($sth->getMessage());
+    }
+    if ($row = $res->fetchrow()) {
     	$admin_email = $row["admin_email"];
         $enable_virus_scanning = ($row["enable_virus_scanning"] == 'Y');
         $enable_spam_filtering = ($row["enable_spam_filtering"] == 'Y');

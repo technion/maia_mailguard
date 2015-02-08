@@ -217,8 +217,12 @@
       global $rewrite_virus_name;
 
       $select = "SELECT virus_lookup, virus_info_url FROM maia_config WHERE id = 0";
-      $sth = $dbh->query($select);
-      if ($row = $sth->fetchrow()) {
+      $sth = $dbh->prepare($select);
+      $res = $sth->execute();
+      if (PEAR::isError($sth)) {
+         die($sth->getMessage());
+      }
+      if ($row = $res->fetchrow()) {
           $virus_lookup = $row["virus_lookup"];
           $virus_info_url = $row["virus_info_url"];
       }

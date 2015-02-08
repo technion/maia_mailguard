@@ -148,10 +148,15 @@
     
     $select = "SELECT rule_name, rule_count " .
               "FROM maia_sa_rules WHERE rule_count > 0 ORDER BY rule_count DESC, rule_name ASC LIMIT ".$out['limit'];
-    $sth = $dbh->query($select);
+    $sth = $dbh->prepare($select);
+    $res = $sth->execute();
+    if (PEAR::isError($sth)) {
+        die($sth->getMessage());
+    }
+
     $keys = array();
     $values = array();
-    if($sth->numRows()) {
+    if($res->numRows()) {
         $sum = 0;
         while ($row = $sth->fetchrow()) {
             $Dataset->addPoint($row["rule_name"], $row["rule_count"], $row["rule_name"]);
@@ -160,8 +165,13 @@
             $sum += $row["rule_count"];
         }
         $select = "SELECT (SUM(rule_count)-".$sum.") AS rest FROM maia_sa_rules";
-        $sth = $dbh->query($select);
-        if($sth->numRows()) {
+
+        $sth = $dbh->prepare($select);
+        $res = $sth->execute();
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        if($res->numRows()) {
             $row = $sth->fetchrow();
             if(0 && $row["rest"]) {
                 $Dataset->addPoint("Rest", $row["rest"], "Rest");
