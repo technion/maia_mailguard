@@ -253,8 +253,7 @@
     );
 
     my @databases = (
-	
-	    {product => "MySQL Server", minver => "", 
+	   {product => "MySQL Server", minver => "5.0.0",
 	     verquery => "SELECT VERSION()", regexp => '^(\d+\.\d+\.\d+)'},
 	
 	    {product => "PostgreSQL Server", minver => "8.4", 
@@ -385,7 +384,7 @@
               my $dbupgrade = 0;
               if (defined($db->{minver}) && $db->{minver} ne "") {
 	             $db->{minver} = sprintf("%s", $db->{minver});
-                 $dbupgrade = $dbversion lt $db->{minver};
+                 $dbupgrade = $dbversion < $db->{minver};
               }
 
               # Do we need to warn about this version of MySQL/PostgreSQL?
