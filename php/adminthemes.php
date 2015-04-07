@@ -136,7 +136,7 @@
     if (PEAR::isError($sth)) {
         die($sth->getMessage());
     }
-	$smarty->assign('rowcount', $sth->numrows());
+	$smarty->assign('rowcount', $res->numrows());
 	while ($row = $res->fetchrow()) {
         $installed_themes[] = array('name' => $row['name'], 'path'=>$row['path'], 'id'=>$row['id']);
         unset ($dirlist[$row['path']]);

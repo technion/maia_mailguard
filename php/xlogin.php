@@ -200,7 +200,7 @@
                     "AND token=? " .
                     "AND token_system='digest'" ;
           $sth = $dbh->prepare($select);
-          $res = $sth->execute(array($maia_user_id,$user_token));
+          $res = $sth->execute(array($maia_user_id,$token));
           if (PEAR::isError($sth)) {
               die($sth->getMessage());
           }
