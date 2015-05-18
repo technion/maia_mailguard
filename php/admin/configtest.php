@@ -730,7 +730,7 @@
             $status = ERROR;
         }
     } else {
-        $result = "(OPTIONAL) purifer_cache is not set in maia_config.php.  Maia will work without it, but the " .
+        $result = "(OPTIONAL) purifer_cache is not set in config.php.  Maia will work without it, but the " .
                   "message viewer might be a little faster if you set it to a directory that is " .
                   "writable by the web server.";
         $status = WARN;
