@@ -262,7 +262,7 @@
 
         // Link the e-mail address to the new owner
         $sth = $dbh->prepare("UPDATE users SET maia_user_id = ? WHERE email = ?");
-        $sth->execute(array($new_owner_id, $emaila));
+        $sth->execute(array($new_owner_id, $email));
         if (PEAR::isError($sth)) {
             die($sth->getMessage());
         }
