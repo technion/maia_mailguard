@@ -27,8 +27,10 @@ opendir DIR, $dir or die "Cannot open dir $dir: $!";
 my @files = readdir DIR;
 
 foreach my $file (@files) {
+    next if $file =~ /^\.$/;
+    next if $file =~ /^\.\.$/;
     my $scan = `$sigtool --vba="$dir/$file"`;
-    if ($scan =~ /AppData\\Local\\Temp/i ) {
+    if ($scan =~ /start of code/i ) {
         print "Scanning $file: INFECTED VBA\n";
         exit 1;
     } else {
