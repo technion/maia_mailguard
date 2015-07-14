@@ -98,7 +98,7 @@
             } else {
                 $this->plugins_dir = array($this->_basedir.'code/', "Smarty/plugins");
             }
-            $this->assign('template_dir', '/themes/'.$theme.'/');
+            $this->assign('template_dir', 'themes/'.$theme.'/');
         }
         
         function getBaseDir() {
