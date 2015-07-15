@@ -35,7 +35,7 @@ $daemon_group = 'maia';
 #   * Should be owned by $daemon_user, group $daemon_group
 
 $MYHOME = '/var/lib/maia';
-
+$TEMPBASE = "$MYHOME/tmp";
 
 ###########################################################################
 #                                                                         #
