@@ -293,6 +293,9 @@
         $sth = $dbh->prepare("SELECT enable_user_autocreation, routing_domain, transport " .
                    "FROM maia_domains " .
                    "WHERE maia_domains.id = ?");
+        if (PEAR::isError($sth)) {
+                die($sth->getMessage());
+        }
         $res = $sth->execute(array($domain_id));
         if ($row = $res->fetchrow()) {
             $smarty->assign('enable_user_autocreation', $row["enable_user_autocreation"]);
