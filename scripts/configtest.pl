@@ -162,6 +162,9 @@
         {component => "forks", type => "module", regexp => "", minver => "0.34",
          reason => "required by Maia Mailguard's process-quarantine tool"},
 
+        {component => "Geo::IP", type => "module", regexp => "", minver => "",
+         reason => "SpamAssassin's optional RelayCountry plugin prefers this if Country::IP::Fast is also installed"},
+
         {component => "HTML::Parser", type => "module", regexp => "", minver => "3.43",
          reason => "required by SpamAssassin"},
 
@@ -178,7 +181,7 @@
          reason => "SpamAssassin's sa-update script requires this"},
 
         {component => "IP::Country::Fast", type => "module", regexp => "", minver => "",
-         reason => "SpamAssassin's optional RelayCountry plugin requires this"},
+         reason => "SpamAssassin's optional RelayCountry plugin will fall back on this if Geo::IP is NOT installed"},
 
         {component => "libdb", type => "perl -e 'eval {require BerkeleyDB; print \$BerkeleyDB::db_version;}'", regexp => "", minver => "4.1.26",
          reason => "Optional features of SpamAssassin and Maia Mailguard use this"},
@@ -282,6 +285,7 @@
     my $have_dbi = 0;
     my $have_dbd_mysql = 0;
     my $have_dbd_pg = 0;
+    my $have_geo_ip = 0;
     my $item;
 
     foreach $item (@components) {
@@ -335,13 +339,32 @@
             } elsif ($upgrade) {
                 print_message($component, $version, "UPGRADE RECOMMENDED (minimum version $min_version)");
             } else {
-                print_message($component, $version, "OK");
+                if ($component eq "Geo::IP") {
+                    $have_geo_ip = 1;
+                    print_message($component, $version, "OK (preferred if IP::Country::Fast is also installed)");
+                } elsif ($component eq "IP::Country::Fast") {
+                    if ($have_geo_ip) {
+                        print_message($component, $version, "OK BUT WILL NOT BE USED (preferred Geo::IP is installed)");
+                    } else {
+                        print_message($component, $version, "OK AND WILL BE USED (preferred Geo::IP is NOT installed)");
+                    }
+                } else {
+                    print_message($component, $version, "OK");
+                }
             }
             $have_dbi = 1 if ($component eq "DBI");
             $have_dbd_mysql = 1 if ($component eq "DBD::mysql");
             $have_dbd_pg = 1 if ($component eq "DBD::Pg");
         } else {
-            print_message($component, "N/A", "NOT INSTALLED ($reason)");
+            if ($have_geo_ip && $component eq "IP::Country::Fast") {
+                print_message($component, "N/A", "NOT INSTALLED BUT OK (preferred Geo::IP installed)");
+            } elsif ($component eq "Digest::SHA1") {
+                if (stat("/etc/debian_version")) {
+                    print_message($component, "N/A", "DEBIAN/UBUNTU/APT-DEB SYSTEM DETECTED (Installing \"razor\" package resolves this)");
+                }
+            } else {
+                print_message($component, "N/A", "NOT INSTALLED ($reason)");
+            }
         }
     }
 
