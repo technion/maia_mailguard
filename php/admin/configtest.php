@@ -259,16 +259,6 @@
       }
       print_row("Multibyte String Support", $result, $status);
 
-     // scrypt support
-     if(function_exists( 'scrypt')) {
-         $result = "scrypt() support available";
-         $status = OK;
-      } else {
-         $result = "scrypt() not available. Use \"pecl install scrypt\"";
-         $status = ERROR;
-      }
-      print_row("scrypt() Support", $result, $status);
-
       // iconv support
       $have_iconv = false;
       if(function_exists( 'iconv')) {
@@ -395,6 +385,41 @@
   function strip_tailing_slash($path) {
     return rtrim($path, '/');
   }
+
+
+   // PEAR::DB
+    if ($have_pear) {
+        if (!in_array("db", $pear_list)) {
+            $result = "Not installed.  This PHP extension is required in order to provide " .
+                      "database abstraction.  Use <b>pear install DB</b> to install this.";
+            $status = ERROR;
+        } else {
+          $db_info = $pear_reg->packageInfo("DB");
+          $pathArray = explode( PATH_SEPARATOR, get_include_path() );
+          $pathArray = array_map('strip_tailing_slash', $pathArray);
+          $db_path = dirname($db_info['filelist']['DB.php']['installed_as']);
+          if (in_array($db_path, $pathArray)) {
+            include_once ("DB.php");               // PEAR::DB
+            $test_dbh = DB::connect($maia_sql_dsn);
+            if (DB::isError($test_dbh)) {
+                $result = "Could not connect to database.  Check the \$maia_sql_dsn setting in config.php.";
+                  $status = ERROR;
+            } else {
+                $result = $db_version = is_array($db_info["version"])?$db_info["version"]["release"]:$db_info["version"];
+                $result .= " DB.php installed as: " . $db_info['filelist']['DB.php']['installed_as'];
+                $db_type = $test_dbh->phptype;
+                
+            }
+          } else {
+            $result = "DB.php installed in: " . $db_path . " but not in include path: " . get_include_path();
+            $status = ERROR;
+          }
+        }
+    } else {
+        $result = "Requires PEAR";
+        $status = WARN;
+    }
+    print_row("PEAR::DB", $result, $status);
 
 
     // PEAR::MDB2
@@ -754,20 +779,6 @@
         $status = OK;
     }
     print_row("IMAP library", $result, $status);
-
-    // LDAP
-    if (!function_exists("ldap_connect")) {
-    	$result = "Not installed, but only required if you want to be able to authenticate " .
-    	          "with LDAP.  See <a href=\"http://www.php.net/ldap/\">this page</a> for " .
-    	          "more information about downloading the LDAP extensions to PHP, and " .
-    	          "instructions for recompiling PHP with the --with-ldap flag.";
-        $status = ERROR;
-    } else {
-        $result = "";
-        $status = OK;
-    }
-    print_row("LDAP library", $result, $status);
-
 
     // BC
     if (!function_exists("bcadd")) {

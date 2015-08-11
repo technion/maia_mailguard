@@ -1,4 +1,8 @@
-This is a fork of Maia mailguard.
+This is a fork of the technion fork of Maia mailguard.
+
+This fork seeks to build on the updates from technion while backing out problematic changes such as scrypt. The goal is to get a working install of mailguard for the Centos 7 reference platform, and provide an optimized, documented installation process for creating an openzv container-based mailguard server.
+
+The README from the original technion fork is below:
 
 The original license has been replaced with a GPL license with the blessing of the project's original creator. See license.txt for further information.
 

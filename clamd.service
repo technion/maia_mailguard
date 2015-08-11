@@ -1,0 +1,15 @@
+[Unit]
+Description = clamd scanner daemon
+After = syslog.target nss-lookup.target network.target
+
+[Service]
+Type = simple
+PIDFile=/var/run/clamd.pid
+ExecStartPre=-/usr/bin/mkdir -p /var/run/clamav
+ExecStartPre=-/usr/bin/chown -R clam:clam /var/run/clamav
+ExecStart=/usr/sbin/clamd --nofork
+Restart=on-failure
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

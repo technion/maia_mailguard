@@ -1,0 +1,18 @@
+This version of maia has been tested on the Centos 7 target platform, 
+It should work on SLES, SuSe or Debian-based dstros, but the initial
+focus is rather RHEL/Centos 7 specific. Scripts to install this
+mailguard release on other Linux distros would be happily accepted.
+In the meantime, it can be installed on other distros using a manual 
+procedure.
+
+Instructions: (this will evolve as we test and refine the process)
+
+For Centos 7, run the script "install-centos7.sh"
+
+For ubuntu 14.04 LTS, run the script "install-ubuntu-tt.sh"
+
+For all other distros, one can puzzle through the manual procedure in the
+contrib directory, which, though written for maia 1.0.2, which used
+amavisd-new, replaced by maiad in the current version, still contains
+the gist of what is needed. It will eventually be brought up to date
+as well. Contributions are welcome.

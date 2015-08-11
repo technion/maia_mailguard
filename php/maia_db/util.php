@@ -31,8 +31,6 @@
         return $dbh->phptype;
     }
 
-
-
     /*
      * generate_random_password(): Generates an 8-character alphanumeric
      *                             password, and returns both the password
@@ -40,26 +38,27 @@
      */
     function generate_random_password()
     {
-        require_once "scrypt.php";
-
         $password_length = 8;
 
-
-        $ur = fopen("/dev/urandom", "r");
-        if(!$ur) {
-            die("Failed to open /dev/urandom");
+        for ($i = "A"; $i < "Z"; $i++) {
+            $chars[] = $i;
         }
-        $urb = "";
-        while (strlen($urb) < $password_length) {
-            $urb .= fread($ur, $password_length - strlen($urb));
+        for ($i = "a"; $i < "z"; $i++) {
+            $chars[] = $i;
         }
-        fclose($ur);
+        for ($i = "0"; $i < "9"; $i++) {
+            $chars[] = $i;
+        }
 
-        $password = base64_encode($urb);
+        $password = "";
+        for ($i = 0; $i < $password_length; $i++) {
+            $password .= $chars[mt_rand(0, count($chars)-1)];
+        }
+        $digest = md5($password);
 
-        $digest = Password::hash($password);
         return array($password, $digest);
     }
+
 
     function get_chart_colors() {
         global $dbh;

@@ -93,7 +93,8 @@
 
 
     // Set your timezone here
-    date_default_timezone_set("Australia/Sydney");
+    date_default_timezone_set("America/Los_Angeles"); 
+
 
     // Default character set is UTF-8 ... hardcoded but if you really have a good reason to change it
     // go ahead and try.
@@ -127,7 +128,7 @@
     // http://pear.php.net/manual/en/package.database.db.intro-dsn.php
 
     //$maia_sql_dsn = "dbtype://dbuser:passwd@tcp(hostname:port)/maia";
-    $maia_sql_dsn = "mysql://maia:passwd@tcp(localhost:3306)/maia";
+    $maia_sql_dsn = "mysql://maia:password@tcp(localhost:3306)/maia";
     //$maia_sql_dsn = "mysql://dbuser:passwd@unix(/var/tmp/mysql.sock)/maia";
     //$maia_sql_dsn = "mysql://dbuser:passwd/maia";
     
@@ -138,7 +139,7 @@
     // $maia_sql_connect_options = array('persistent' => true);  // For persistent connections
 
     // To improve performace with the html purifier, set purifier_cache to a directory the web server can write to.
-    $purifier_cache = null;
+    $purifier_cache = '/var/www/cache';
 
 
 	// Default protection level

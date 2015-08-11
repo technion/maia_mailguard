@@ -1,4 +1,4 @@
-# Sample maiad.conf file for Maia Mailguard 1.0.4
+# Sample maiad.conf file for Maia Mailguard 1.0.4r
 
 use strict;
 
@@ -76,7 +76,7 @@ $X_HEADER_TAG = 'X-Virus-Scanned';
 #   * Will appear in the headers of filtered mail
 #   * Typically the name of the mail filter, e.g. 'Maia Mailguard'
 
-$X_HEADER_LINE = "Maia Mailguard 1.0.4";
+$X_HEADER_LINE = "Maia Mailguard 1.0.4r";
 
 
 # Mail domain ($mydomain)
@@ -390,7 +390,7 @@ $banned_filename_re = new_RE(
 
 # Clam Antivirus Daemon (clamd)
 ['ClamAV-clamd',
-   \&ask_daemon, ["CONTSCAN {}\n", "/var/run/clamav/clamd.ctl"],
+   \&ask_daemon, ["CONTSCAN {}\n", "/var/run/clamav/clamd.sock"],
    qr/\bOK$/m, qr/\bFOUND$/m,
    qr/^.*?: (?!Infected Archive)(.*) FOUND$/m ],
 # NOTE: run clamd under the same user as maiad, or run it under its own
