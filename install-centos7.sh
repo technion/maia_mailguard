@@ -1,6 +1,24 @@
 # 
 # todo - get maia password up front and configure the credentials
 #
+# assumptions - this is a new machine -
+#
+#       mysql server is installed, without root password
+#       postfix is installed, with default, vanilla config
+#       the apache web server is installed and operational
+#       the machine has access to the software repositories
+#
+#  if any of these assumptions are false, some manual cleanup
+#  work will have to be done e.g. creating the maia database,
+#  editing postfix config files, configuring the web server etc
+#
+
+echo 
+echo "this script is meant for Centos 7" 
+echo 
+echo -n "<ENTER> to continue or CTRL-C to stop..."
+read junk
+echo 
 
 # install stage 1 packages
 
@@ -36,6 +54,8 @@ yum install -y clamav
 yum install -y clamav-update 
 yum install -y clamav-data 
 yum install -y clamav-server
+
+yum install -y httpd httpd-tools
 
 #
 # echo "done with rpm installs"

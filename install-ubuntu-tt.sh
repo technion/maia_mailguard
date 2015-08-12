@@ -5,11 +5,12 @@
 #
 #	mysql server is installed, without root password
 #	postfix is installed, with default, vanilla config
-#	the server has internet access for software install
+#	the apache web server is installed and operational
+#	the machine has access to the software repositories
 #
 #  if any of these assumptions are false, some manual cleanup
 #  work will have to be done e.g. creating the maia database,
-#  editing postfix config files, etc
+#  editing postfix config files, configuring the web server etc
 #
 
 echo 
@@ -62,10 +63,6 @@ apt-get install -y libencode-detect-perl
 apt-get install -y clamav 
 apt-get install -y clamav-freshclam
 apt-get install -y clamav-daemon
-
-#
-# echo "done with rpm installs"
-#
 
 #
 # add maia user and chown all its files/dirs
