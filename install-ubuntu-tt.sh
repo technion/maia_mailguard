@@ -1,11 +1,21 @@
 # 
 # todo - get maia password up front and configure the credentials
 #
+# assumptions - this is a new machine -
+#
+#	mysql server is installed, without root password
+#	postfix is installed, with default, vanilla config
+#	the server has internet access for software install
+#
+#  if any of these assumptions are false, some manual cleanup
+#  work will have to be done e.g. creating the maia database,
+#  editing postfix config files, etc
+#
 
 echo 
 echo "this is for ubuntu 14.04 LTS (Trusty Tahr)"
 echo 
-echo "<ENTER> to continue or CTRL-C to stop..."
+echo -n "<ENTER> to continue or CTRL-C to stop..."
 read junk
 echo 
 
@@ -37,6 +47,7 @@ apt-get install -y libcrypt-openssl-rsa-perl
 apt-get install -y libdata-uuid-perl
 apt-get install -y libdbd-mysql-perl libdbd-pg-perl
 apt-get install -y libnet-server-perl
+apt-get-install -y libnet-ldap-perl
 apt-get install -y libforks-perl
 apt-get install -y perl-Net-DNS-Nameserver
 apt-get install -y libtext-csv-perl
@@ -110,7 +121,8 @@ cp maiad_init_ubuntu /etc/init.d/maiad
 #
 # non-interactive cpan installs
 #
-curl -L http://cpanmin.us | perl - --sudo App::cpanminus
+
+apt-get install -y cpanminus
 
 cpanm Digest::SHA1
 cpanm IP::Country::Fast

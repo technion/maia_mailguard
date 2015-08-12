@@ -25,6 +25,7 @@ yum install -y perl-Net-Server
 yum install -y perl-Net-DNS-Nameserver
 yum install -y perl-Text-CSV
 yum install -y perl-Net-CIDR-Lite
+yum install -y perl-LDAP
 yum install -y perl-Unix-Syslog
 yum install -y perl-Razor-Agent
 yum install -y perl-Template-Toolkit
