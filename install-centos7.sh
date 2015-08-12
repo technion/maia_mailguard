@@ -1,5 +1,8 @@
 # 
 # todo - get maia password up front and configure the credentials
+#   e.g. - 
+#       postfix: domain, hostname, relayhost
+#       db: maia pw: maia-grants.  maia.conf, maiad.conf, config.php
 #
 # assumptions - this is a new machine -
 #
