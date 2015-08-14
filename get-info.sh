@@ -1,8 +1,19 @@
 # 
 # get configuration paraneters up front 
 #
-#       postfix: domain, hostname, relayhost
-#       db: maia pw: maia-grants. maia.conf, maiad.conf, config.php
+#   parameters of interest:
+#	maia db password (default is "password")
+#	mysql root password 
+#	server hostname
+#	server domain name
+#	smtp relayhost
+
+#   files subject to modification:
+#	/etc/maia/maia.conf
+#	/etc/maia/maiad.conf
+#	/var/www/html/maia/config.php
+#	/etc/postfix/main.cf
+#	/etc/postfix/master.cf
 #
 # assumptions - this is a new machine -
 #
