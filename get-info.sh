@@ -40,7 +40,7 @@ echo -n "Do you wish to change the default maia password? (y/N)"
 read junk
 echo
 
-[ "${junk}X" == "X" ] &&  junk="n"
+[ "${junk}X" == "X" ] && junk="n"
 
 if [ $junk == 'y' ] || [ $junk == 'Y' ]; then
   mynewdbpass=1
@@ -53,7 +53,7 @@ fi
 echo -n "Is there a mysql root password assigned? (y/N)"
 read junk
 echo
-[ "${junk}X" == "X" ] &&  junk="n"
+[ "${junk}X" == "X" ] && junk="n"
 
 if [ $junk == 'y' ] || [ $junk == 'Y' ]; then
   myroothazpass=1
@@ -65,7 +65,7 @@ elif [ $junk == 'n' ] || [ $junk == 'N' ]; then
   echo -n "Do you wish to assign a mysql root password at this time? (y/N)"
   read junk
   echo
-  [ "${junk}X" == "X" ] &&  junk="n"
+  [ "${junk}X" == "X" ] && junk="n"
 
   if [ $junk == 'y' ] || [ $junk == 'Y' ]; then
     myrootwantpass=1
@@ -104,8 +104,8 @@ fqdn=`hostname -f`
 
 echo "does this server require an smtp relayhost/smarthost? (y/N)"
 read junk
-[ "${junk}X" == "X" ] &&  junk="n"
-[ "$junk" == "Y" ] &&  junk="y"
+[ "${junk}X" == "X" ] && junk="n"
+[ "$junk" == "Y" ] && junk="y"
 if [ $junk == 'y' ]; then
   echo "enter smart host:"
   needsmarthost=1
