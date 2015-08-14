@@ -117,7 +117,6 @@ fi
 #
 
 echo "OK, reviewing settings..."
-sleep 1
 echo
 
 echo "the short hostname is $shost"
@@ -154,9 +153,19 @@ echo "settings correct? hit <ENTER> to continue, CTRL-C to abort"
 #
 
 read junk
-if [ $mynewdbpass == 1 ] || [ $myroothazpass == 1 ]; then
-  echo "not yet implemented"
-  exit 1
-fi
+#if [ $mynewdbpass == 1 ] || [ $myroothazpass == 1 ]; then
+#  echo "not yet implemented"
+#  exit 1
+#fi
+
+echo > installer.tmpl
+echo "HOST=$shost" >> installer.tmpl
+echo "FQDN=$fqdn" >> installer.tmpl
+[ $mynewdbpass == 1 ] && echo "MAIAPASS=$mydbpass" >> installer.tmpl
+[ $myroothazpass == 1 ] && echo "ROOTPASS=$rootmypass" >> installer.tmpl
+[ $needsmarthost == 1 ] && echo "SMARTHOST=$smarthost" >> installer.tmpl
+
+echo "installation parameters:"
+cat installer.tmpl
 echo
 
