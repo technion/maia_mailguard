@@ -1,5 +1,7 @@
+# ignore this file
+.gitignore
+
 # ignore all files ending with ~
 *~ 
-
 # ignore the installer params file if it exists
 installer.tmpl
