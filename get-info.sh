@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # 
 # get configuration paraneters up front 
 #
@@ -34,17 +35,10 @@
 #
 
 myroothazpass=0
-myrootwantpass=0
+#myrootwantpass=0
 mydbpass=""
 mynewdbpass=0
 needsmarthost=0
-
-# check if it's the right platform
-echo 
-echo "this script is meant for Centos 7" 
-echo 
-echo "Hit <ENTER> to continue or CTRL-C to stop..."
-read junk
 
 # find out whether to set a new maia db password
 echo -n "Do you wish to change the default maia password? (y/N)"
@@ -72,20 +66,21 @@ if [ $junk == 'y' ] || [ $junk == 'Y' ]; then
   echo "Enter the mysql root password and press [ENTER]:"
   read -s rootmypass
   echo
-elif [ $junk == 'n' ] || [ $junk == 'N' ]; then
-  echo -n "Do you wish to assign a mysql root password at this time? (y/N)"
-  read junk
-  echo
-  [ "${junk}X" == "X" ] && junk="n"
-
-  if [ $junk == 'y' ] || [ $junk == 'Y' ]; then
-    myrootwantpass=1
-    echo "Enter the mysql root password and press [ENTER]:"
-    read -s rootmypass
-    echo
-    myroothazpass=1
-  fi
 fi
+#elif [ $junk == 'n' ] || [ $junk == 'N' ]; then
+#  echo -n "Do you wish to assign a mysql root password at this time? (y/N)"
+#  read junk
+#  echo
+#  [ "${junk}X" == "X" ] && junk="n"
+#
+#  if [ $junk == 'y' ] || [ $junk == 'Y' ]; then
+#    myrootwantpass=1
+#    echo "Enter the mysql root password and press [ENTER]:"
+#    read -s rootmypass
+#    echo
+#    myroothazpass=1
+#  fi
+#fi
 
 if [ $myroothazpass == 0 ]; then
   echo "there is no mysql root password set"
@@ -100,6 +95,7 @@ echo
 
 shost=`hostname -s`
 fqdn=`hostname -f`
+domain=`echo $fqdn | sed s/${shost}\.//g`
 
 #echo "this server will use the hostname $shost - correct?"
 #echo "if this is correct, hit <ENTER> to continue"
@@ -113,15 +109,11 @@ fqdn=`hostname -f`
 #echo
 #read junk
 
-echo "does this server require an smtp relayhost/smarthost? (y/N)"
-read junk
-[ "${junk}X" == "X" ] && junk="n"
-[ "$junk" == "Y" ] && junk="y"
-if [ $junk == 'y' ]; then
-  echo "enter smart host:"
-  needsmarthost=1
-  read smarthost
-fi
+echo "does this server require an smtp relayhost/smarthost?"
+echo -n "enter relayhost if required, otherwise just press enter:"
+read smarthost
+[ "${smarthost}X" == "X" ] || needsmarthost=1
+echo
 
 #
 # review settings - 
@@ -134,7 +126,8 @@ echo "the short hostname is $shost"
 echo
 echo "the fully qualified hostname is $fqdn"
 echo
-
+echo "the domain seems to be $domain"
+echo
 
 if [ $myroothazpass == 1 ]; then
   echo "mysql password for root: $rootmypass"
@@ -172,11 +165,15 @@ read junk
 echo > installer.tmpl
 echo "HOST=$shost" >> installer.tmpl
 echo "FQDN=$fqdn" >> installer.tmpl
+echo "DOMAIN=$domain" >> installer.tmpl
+
 [ $mynewdbpass == 1 ] && echo "MAIAPASS=$mydbpass" >> installer.tmpl
 [ $myroothazpass == 1 ] && echo "ROOTPASS=$rootmypass" >> installer.tmpl
-[ $needsmarthost == 1 ] && echo "SMARTHOST=$smarthost" >> installer.tmpl
+
+[ $needsmarthost == 1 ] && echo "RELAY=$smarthost" >> installer.tmpl
 
 echo "installation parameters:"
+cp installer.tmpl template/
 cat installer.tmpl
 echo
 
