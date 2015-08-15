@@ -196,6 +196,8 @@ echo "stage 2 complete"
 # call postfix setup script
 ./postfix-setup.sh
 
+systemctl restart postfix
+
 host=`grep HOST installer.tmpl | awk -F\= '{ print $2 }'`
 
 echo

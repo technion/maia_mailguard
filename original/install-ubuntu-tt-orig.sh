@@ -1,4 +1,20 @@
-# testing - call info gathering script, then use params for install 
+# 
+# todo - get maia password up front and configure the credentials
+#   e.g. - 
+#       postfix: domain, hostname, relayhost
+#       db: maia pw: maia-grants.  maia.conf, maiad.conf, config.php
+#
+# assumptions - this is a new machine -
+#
+#	mysql server is installed, without root password
+#	postfix is installed, with default, vanilla config
+#	the apache web server is installed and operational
+#	the machine has access to the software repositories
+#
+#  if any of these assumptions are false, some manual cleanup
+#  work will have to be done e.g. creating the maia database,
+#  editing postfix config files, configuring the web server etc
+#
 
 echo 
 echo "this is for ubuntu 14.04 LTS (Trusty Tahr)"
@@ -6,12 +22,6 @@ echo
 echo -n "<ENTER> to continue or CTRL-C to stop..."
 read junk
 echo 
-
-# get the info, write parames to a file
-./get-info.sh
-
-# find out what we need to change
-./process-changes.sh
 
 # install stage 1 packages
 
@@ -73,8 +83,9 @@ chown -R maia.maia /var/log/maia
 #chown -R clamupdate.clam /var/lib/clamav/
 #chmod 775 /var/lib/clamav/
 
-mkdir -p /etc/maia
-cp maia.conf maiad.conf /etc/maia/
+mkdir /etc/maia
+cp maia.conf.dist /etc/maia/maia.conf
+cp maiad.conf.dist /etc/maia/maiad.conf
 
 mkdir -p  /var/lib/maia/tmp
 mkdir -p  /var/lib/maia/db
@@ -184,7 +195,7 @@ done
 
 chmod 775 /var/www/html/maia/themes/*/compiled
 chown maia.www-data /var/www/html/maia/themes/*/compiled
-cp config.php /var/www/html/maia/
+cp php/config.php.dist /var/www/html/maia/config.php
 mkdir /var/www/cache
 chown maia.www-data /var/www/cache
 chmod 775 /var/www/cache
@@ -196,26 +207,40 @@ apachectl restart
 
 echo "stage 2 complete"
 
-# call postfix setup script
-./postfix-setup.sh
+echo
+echo "setting up postfix for maia spam/virus filtering"
+echo
+
+cp /etc/postfix/main.cf /etc/postfix/main.cf-save-$$
+cp /etc/postfix/master.cf /etc/postfix/master.cf-save-$$
+
+cat master.cf-append >> /etc/postfix/master.cf
+
+postconf -e inet_interfaces=all
+postconf -e content_filter=maia:[127.0.0.1]:10024
 
 /etc/init.d/postfix restart
 
-host=`grep HOST installer.tmpl | awk -F\= '{ print $2 }'`
-
 echo
-echo	"any other site specific MTA configuration can be applied now - "
+echo	"any site specific MTA setup can be performed now - "
 echo
-
-echo	"at this point, a good sanity check would be to run"
-echo	"/var/lib/maia/scripts/configtest.pl" 
 
 echo 
-echo 	"If that passes check the web-based maia configuration test"
-echo	"at http://$host/maia/admin/configtest.php"
+echo	"before proceeding - " 
+echo	"the maia password must be set in 3 places:"
+echo	"around line 15 of /etc/maia/maia.conf" 
+echo	"around line 194 of /etc/maia/maiad.conf" 
+echo	"around line 131 of /var/www/html/maia/config.php"
+
+echo 
+echo 	"when this is done..."
+echo	"run /var/lib/maia/scripts/configtest.pl" 
+echo 
+echo 	"If that passes check the web at /maia/admin/config test"
+echo	"at http://<your-server>/maia/admin/configtest.php"
 echo
 echo	"if everything passes, create the initial maia user"
-echo	"at http://$host/maia/internal-init.php"
+echo	"at http://<your-server>/maia/internal-init.php"
 echo
 
 # some useful aliases
