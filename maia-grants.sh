@@ -8,6 +8,7 @@ NEWPW=`grep MAIAPASS installer.tmpl | awk -F\= '{ print $2 }'`
 
 [ $PWCHANGE -eq 1 ] && export PASSWD=$NEWPW
 
+export PASSWD PWCHANGE
 echo "PWCHANGE = $PWCHANGE"
 echo "PASSWORD = $PASSWD"
 
