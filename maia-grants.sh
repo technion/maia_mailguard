@@ -4,7 +4,7 @@ PASSWD='password'
 PWCHANGE=0
 
 NEWPW=`grep MAIAPASS installer.tmpl | awk -F\= '{ print $2 }'`
- ${NEWPW}X != "X" ] && PWCHANGE=1
+[ ${NEWPW}X != "X" ] && PWCHANGE=1
 
 [ $PWCHANGE -eq 1 ] && export PASSWD=$NEWPW
 
