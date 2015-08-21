@@ -1,4 +1,4 @@
-# testing - call info gathering script, then use params for install 
+# new version - gather info up front to use during the install process
 
 echo 
 echo "this script is meant for Centos 7" 
@@ -14,8 +14,6 @@ echo
 ./process-changes.sh
 
 # continue with install
-
-# install stage 1 packages
 
 # add epel and get up to date
 yum install -y epel-release
@@ -53,11 +51,7 @@ yum install -y clamav-server
 yum install -y httpd httpd-tools
 
 #
-# echo "done with rpm installs"
-#
-
-#
-# add maia user and chown all its files/dirs
+# add maia user and chown/chmod its files/dirs
 #
 useradd -d /var/lib/clamav clam
 useradd -d /var/lib/maia maia
@@ -90,7 +84,6 @@ chown -R maia.maia /var/lib/maia/tmp
 #
 mkdir -p /var/www/html/maia
 cp -r php/* /var/www/html/maia
-echo "done with file copy, starting package install"
 
 #
 # install the systemd unit files -
@@ -124,6 +117,7 @@ systemctl start mariadb.service
 mysqladmin create maia
 mysql maia < maia-mysql.sql 
 sh maia-grants.sh
+
 
 echo "stage 1 install complete"
 
@@ -193,6 +187,7 @@ echo "reloading http server"
 systemctl restart httpd
 
 echo "stage 2 complete"
+
 # call postfix setup script
 ./postfix-setup.sh
 

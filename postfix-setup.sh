@@ -13,7 +13,7 @@ postconf -e content_filter=maia:[127.0.0.1]:10024
 #hostname=`grep HOST installer.tmpl | awk -F\= '{ print $2 }'`
 hostname=`grep FQDN installer.tmpl | awk -F\= '{ print $2 }'`
 domain=`grep DOMAIN installer.tmpl | awk -F\= '{ print $2 }'`
-postconf -e myhostname=${fqdn}
+postconf -e myhostname=${hostname}
 postconf -e mydomain=${domain}
 
 # do we need to add a relayhost?

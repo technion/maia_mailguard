@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
 PASSWD='password'
+PWCHANGE=0
 
 NEWPW=`grep MAIAPASS installer.tmpl | awk -F\= '{ print $2 }'`
-PWCHANGE=`echo $NEWPW | awk -F\= '{ print $2 }' | wc -l`
+ ${NEWPW}X != "X" ] && PWCHANGE=1
+
 [ $PWCHANGE -eq 1 ] && export PASSWD=$NEWPW
 
 echo "PWCHANGE = $PWCHANGE"
