@@ -1,0 +1,20 @@
+
+[Unit]
+Description=Maiad Daemon
+After = syslog.target nss-lookup.target network.target
+
+
+[Service]
+Type=simple
+PIDFile=/var/run/maia/maiad.pid
+ExecStartPre=-/usr/bin/mkdir -p /var/run/maia
+ExecStartPre=-/usr/bin/mkdir -p /var/lock/maia
+ExecStartPre=-/usr/bin/chown -R maia:maia /var/run/maia
+ExecStartPre=-/usr/bin/chown -R maia:maia /var/lock/maia
+ExecStart = /var/lib/maia/maiad
+Restart = on-failure
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+

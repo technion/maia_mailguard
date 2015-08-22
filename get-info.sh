@@ -173,7 +173,7 @@ echo "DOMAIN=$domain" >> installer.tmpl
 [ $needsmarthost == 1 ] && echo "RELAY=$smarthost" >> installer.tmpl
 
 echo "installation parameters:"
-cp installer.tmpl template/
+cp installer.tmpl cfg_tpl/
 cat installer.tmpl
 echo
 

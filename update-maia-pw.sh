@@ -1,8 +1,8 @@
 # use template files to update configs
 
-cp template/maia.conf.tmpl maia.conf
-cp template/maiad.conf.tmpl maiad.conf
-cp template/config.php.tmpl config.php
+cp cfg_tpl/maia.conf.tmpl maia.conf
+cp cfg_tpl/maiad.conf.tmpl maiad.conf
+cp cfg_tpl/config.php.tmpl config.php
 
 passwd=`grep MAIAPASS installer.tmpl | awk -F\= '{ print $2 }'`
 
