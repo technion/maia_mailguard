@@ -4404,6 +4404,10 @@ sub maia_record_tests($$$$$) {
     }
 
     # update the mail item's final score
+    #
+    if ($autolearn_status eq "") {
+          $autolearn_status = "unavailable";
+    }
     $update = "UPDATE maia_mail SET score = ?, autolearn_status = ? WHERE id = ?";
     $sth = $dbh->prepare_cached($update)
         or do_log(0, sprintf("Maia: [record_tests] Couldn't prepare query: %s", $dbh->errstr));
@@ -14355,7 +14359,15 @@ sub spam_scan($$$) {
         $spam_report = $per_msg_status->get_report;  # taints $1 and $2 !
 
         # 'ham', 'spam', 'no', 'disabled', 'failed', 'unavailable'
-        $autolearn_status = $per_msg_status->get_autolearn_status;
+        #$autolearn_status = $per_msg_status->get_autolearn_status;
+        #
+        my ($autolearn, $not_used) = split / /, $per_msg_status->get_autolearn_status;
+        if ( $autolearn eq "") {
+          $autolearn_status = "unavailable";
+        }
+        else {
+          $autolearn_status = $autolearn;
+        }
 
       # example of how to gather aditional information from SA:
       # my($trusted) = $per_msg_status->_get_tag('RELAYSTRUSTED');
