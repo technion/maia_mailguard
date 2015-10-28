@@ -41,6 +41,7 @@ yum install -y perl-Unix-Syslog
 yum install -y perl-Razor-Agent
 yum install -y perl-Template-Toolkit
 yum install -y perl-CPAN 
+yum install -y perl-Geo-IP
 #
 #
 yum install -y clamav 
