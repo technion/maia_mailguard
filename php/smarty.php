@@ -94,9 +94,9 @@
             $this->cache_dir = $this->_basedir.'cached/';
             $this->caching = false;
             if (!empty($spath)) {
-                $this->plugins_dir = array($this->_basedir.'code/', $spath . '/plugins');
+                $this->addPluginsDir(array($spath . '/plugins', $this->_basedir.'code/'));
             } else {
-                $this->plugins_dir = array($this->_basedir.'code/', "Smarty/plugins");
+                $this->addPluginsDir(array($this->_basedir.'code/'));
             }
             $this->assign('template_dir', 'themes/'.$theme.'/');
         }
