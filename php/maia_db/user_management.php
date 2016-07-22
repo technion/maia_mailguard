@@ -831,6 +831,7 @@
                                            $new_oldest_oversized_date,
                                            $new_newest_oversized_date,
                                            $new_smallest_oversized_size,
+                                           $new_largest_oversized_size,
                                            $new_total_oversized_size,
                                            $new_total_oversized_items,
                                            $new_owner_id));
@@ -919,7 +920,7 @@
                                   "?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?," .
                                   "?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?," .
                                   "?,?,?,?,?,?,?,?,?,?,?,?,?)");
-                $sti->execute(array($old_oldest_ham_date,
+                $sthi->execute(array($old_oldest_ham_date,
                                            $old_newest_ham_date,
                                            $old_smallest_ham_size,
                                            $old_largest_ham_size,
