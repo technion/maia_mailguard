@@ -325,7 +325,7 @@
         $select .= "AND id NOT IN (" . $id_list . ") ";
     }
     $select .= "ORDER BY user_name ASC";
-    $sth->prepare($select)
+    $sth->prepare($select);
     $res = $sth->execute();
     if (PEAR::isError($sth)) {
         die($sth->getMessage());
