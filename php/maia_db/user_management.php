@@ -831,7 +831,6 @@
                                            $new_oldest_oversized_date,
                                            $new_newest_oversized_date,
                                            $new_smallest_oversized_size,
-                                           $new_largest_oversized_size,
                                            $new_total_oversized_size,
                                            $new_total_oversized_items,
                                            $new_owner_id));
@@ -999,7 +998,9 @@
                 }
                   
             }
-            $sth2->free();
+            $res->free();
+            $res2->free();
+            $sthu->free();
         }
         $sth->free();
     }
