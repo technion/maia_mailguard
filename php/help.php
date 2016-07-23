@@ -286,7 +286,7 @@
                 "<a href=\"http://www.ijs.si/software/amavisd/\">AMaViS Mail Virus Scanner (amavisd-new)</a>",
                 "<a href=\"http://www.spamassassin.org/\">SpamAssassin</a>",
                 "<a href=\"http://us.mcafee.com/root/package.asp?pkgid=100\">McAfee VirusScan</a>",
-                "<a href=\"http://clamav.elektrapro.com/\">Clam Antivirus</a>",
+                "<a href=\"https://www.clamav.net/\">Clam Antivirus</a>",
                 "<a href=\"http://www.f-prot.com/\">F-Prot Antivirus</a>"); 
 
 
