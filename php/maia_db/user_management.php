@@ -920,7 +920,7 @@
                                   "?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?," .
                                   "?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?," .
                                   "?,?,?,?,?,?,?,?,?,?,?,?,?)");
-                $sti->execute(array($old_oldest_ham_date,
+                $sthi->execute(array($old_oldest_ham_date,
                                            $old_newest_ham_date,
                                            $old_smallest_ham_size,
                                            $old_largest_ham_size,
@@ -999,7 +999,9 @@
                 }
                   
             }
-            $sth2->free();
+            $res->free();
+            $res2->free();
+            $sthu->free();
         }
         $sth->free();
     }
