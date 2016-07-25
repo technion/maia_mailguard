@@ -4,11 +4,15 @@ Reply-To: Maia Admin <[% admin_email %]>
 [% USE formatteddate = date %]Date: [% formatteddate.format %]
 Subject: Maia Quarantine Digest
 MIME-Version: 1.0
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 8bit
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><body>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+<body>
 <div align="center">
 <a href="[% baseurl %]/confirm.php?id=[% maia_user_id %]&euid=[% euid %]&ts=[% date | uri %]&token=[% confirm_token %]&manage=true">[Log in]</a> to manage your Maia account</a>
 </div>

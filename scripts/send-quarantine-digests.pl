@@ -79,6 +79,7 @@ use POSIX;
 use Net::SMTP;
 use Template;
 use Data::UUID;
+use Encode;
 
 # prototypes
 sub fatal($);
@@ -112,7 +113,7 @@ if (open(PID_FILE, "< $pid_file\0")) {
         }
         unlink($pid_file);
     } elsif (kill 0 => $pid) {
-        if (!$quiet) {
+        if ($debug) {
             output(sprintf("Another instance [%d] is currently running.", $pid));
         }
         exit;
@@ -400,7 +401,14 @@ sub send_message($$$$$) {
     $smtp->mail($admin_email);
     $smtp->to($recip);
     $smtp->data();
-    $smtp->datasend($output);
+    my ($output_mime) = '';
+    for my $line (split("\n", $output)) {
+        $line =~ s/[\r\n]//g;
+        $line = 'Subject: '.encode('MIME-Header', decode_utf8($1)) if($line =~ /^Subject: (.*)/);
+        output($line); 
+        $output_mime .= "$line\n";
+    }
+    $smtp->datasend($output_mime);
     $smtp->dataend();
 }
 
