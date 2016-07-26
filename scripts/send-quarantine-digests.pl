@@ -231,7 +231,7 @@ my $domain_admin_sth = $dbh->prepare($query)
 
 my %report_statements;
 while (my($element, $sort) = each(%sort)) {
-    next if exists $report_statements{$elemengt};
+    next if exists $report_statements{$element};
     my %report_type_lookup = (
            'ham'         => 'H',
            'spam'        => 'S',
