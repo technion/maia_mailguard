@@ -126,15 +126,15 @@
                   "AND maia_mail.received_date <= ? " .
                   "AND maia_mail_recipients.type = 'H' " .
                   "AND maia_mail_recipients.recipient_id = ?";
-        $sth = $dbh->query($select, array($cutoff_date, $euid));
-        while ($row = $sth->fetchRow())
+        $sth = $dbh->prepare($select);
+        $res = $sth->execute(array($cutoff_date, $euid));
+        while ($row = $res->fetchRow())
         {
 
             $mail_id = $row["id"];
             confirm_ham($euid, $mail_id);
             $confirmed++;
         }
-        $sth->free();
         update_mail_stats($euid, "suspected_ham");
         if ($confirmed > 0) {
             $message .= sprintf($lang['text_ham_confirmed'], $confirmed) . ".<br>";
@@ -149,15 +149,18 @@
                   "AND maia_mail.received_date <= ? " .
                   "AND maia_mail_recipients.type IN ('S','P') " .
                   "AND maia_mail_recipients.recipient_id = ?";
-        $sth = $dbh->query($select, array($cutoff_date, $euid));
-        while ($row = $sth->fetchRow())
+        $sth = $dbh->prepare($select);
+        $res = $sth->execute(array($cutoff_date, $euid));
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage());
+        }
+        while ($row = $res->fetchRow())
         {
 
             $mail_id = $row["id"];
             confirm_spam($euid, $mail_id);
             $confirmed++;
         }
-        $sth->free();
         update_mail_stats($euid, "suspected_spam");
         if ($confirmed > 0) {
             $message .= sprintf($lang['text_spam_confirmed'], $confirmed) . ".<br>";
@@ -172,14 +175,14 @@
                   "AND maia_mail.received_date <= ? " .
                   "AND maia_mail_recipients.type = 'V' " .
                   "AND maia_mail_recipients.recipient_id = ?";
-        $sth = $dbh->query($select, array($cutoff_date, $euid));
-        while ($row = $sth->fetchRow())
+        $sth = $dbh->prepare($select);
+        $res = $sth->execute(array($cutoff_date, $euid));
+        while ($row = $res->fetchRow())
         {
             $mail_id = $row["id"];
             delete_mail_reference($euid, $mail_id);
             $deleted++;
         }
-        $sth->free();
         if ($deleted > 0) {
             $message .= sprintf($lang['text_viruses_deleted'], $deleted) . ".<br>";
         }
@@ -193,14 +196,14 @@
                   "AND maia_mail.received_date <= ? " .
                   "AND maia_mail_recipients.type = 'F' " .
                   "AND maia_mail_recipients.recipient_id = ?";
-        $sth = $dbh->query($select, array($cutoff_date, $euid));
-        while ($row = $sth->fetchRow())
+        $sth = $dbh->prepare($select);
+        $res = $sth->execute(array($cutoff_date, $euid));
+        while ($row = $res->fetchRow())
         {
             $mail_id = $row["id"];
             delete_mail_reference($euid, $mail_id);
             $deleted++;
         }
-        $sth->free();
         if ($deleted > 0) {
             $message .= sprintf($lang['text_attachments_deleted'], $deleted) . ".<br>";
         }
@@ -214,14 +217,14 @@
                   "AND maia_mail.received_date <= ? " .
                   "AND maia_mail_recipients.type = 'B' " .
                   "AND maia_mail_recipients.recipient_id = ?";
-        $sth = $dbh->query($select, array($cutoff_date, $euid));
-        while ($row = $sth->fetchRow())
+        $sth = $dbh->prepare($select);
+        $res = $sth->execute(array($cutoff_date, $euid));
+        while ($row = $res->fetchRow())
         {
             $mail_id = $row["id"];
             delete_mail_reference($euid, $mail_id);
             $deleted++;
         }
-        $sth->free();
         if ($deleted > 0) {
             $message .= sprintf($lang['text_headers_deleted'], $deleted) . ".<br>";
         }
@@ -230,7 +233,8 @@
                   "WHERE token=? " .
                   "AND data=? " .
                   "AND token_system='digest'";
-        $sth = $dbh->query($update, array($token, $euid));
+        $sth = $dbh->prepare($update);
+        $res = $sth->execute(array($token, $euid));
 
         $_SESSION["message"] = $message;
          header("Location: welcome.php");
