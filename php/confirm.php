@@ -151,9 +151,6 @@
                   "AND maia_mail_recipients.recipient_id = ?";
         $sth = $dbh->prepare($select);
         $res = $sth->execute(array($cutoff_date, $euid));
-        if (PEAR::isError($sth)) {
-            die($sth->getMessage());
-        }
         while ($row = $res->fetchRow())
         {
 
