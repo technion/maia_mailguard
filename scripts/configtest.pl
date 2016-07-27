@@ -253,6 +253,9 @@
         {component => "Text::CSV", type => "module", regexp => "", minver => "",
          reason => "required by maiadbtool.pl"},
 
+        {component => "Encode", type => "module", regexp => "", minver => "",
+         reason => "required by send-quarantine-digests.pl"},
+
     );
 
     my @databases = (
