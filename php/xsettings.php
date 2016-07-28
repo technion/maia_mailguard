@@ -645,9 +645,9 @@
             $address = $row["email"];
             if (isset($_POST["make_primary_" . $email_id])) {
                 $sth2 = $dbh->prepare("UPDATE maia_users SET primary_email_id = ? WHERE id = ?");
-                $sth2->execute(array($email_id, $user_id));
-                if (PEAR::isError($sth)) {
-                    die($sth->getMessage());
+                $res = $sth2->execute(array($email_id, $user_id));
+                if (PEAR::isError($res)) {
+                    die($res->getMessage());
                 }
                 $sth2->free();
                 $message = sprintf($lang['text_new_primary_email'], $address);
