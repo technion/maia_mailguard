@@ -1391,8 +1391,9 @@ EOQ
         # 'C' : Confirmed Spam
         # 'G' : Confirmed Ham (non-spam)
         # 'S' : High-scoring Spam to be Auto-Learned
+        # 'P' : For labeled spam should not appear here in Maia 1.0.x but we'll add it to be safe
         # 'H' : Low-scoring Ham to be Auto-Learned
-	    my $isspam = ($type =~ /[CS]/i ? 1 : 0);
+	    my $isspam = ($type =~ /[CSP]/i ? 1 : 0);
 	    my $isauto = ($type =~ /[HS]/i ? 1 : 0);
 	    my $autoham = ($autolearn_status =~ /^ham$/i ? 1 : 0);
 	    my $autospam = ($autolearn_status =~ /^spam$/i ? 1 : 0);
