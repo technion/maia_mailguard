@@ -55,7 +55,7 @@
 {section name=hamloop loop=$row}
 {strip}
 
-<tr class="{cycle values=$body_class,$alt_body_class }" id="row_{$row[hamloop].id}">
+<tr class="{cycle values="$body_class,$alt_body_class"}" id="row_{$row[hamloop].id}">
   <td class="list-toggle" align="center">
     <input type="checkbox" name="cache_item[generic][{$row[hamloop].id}]" value="{$row[hamloop].id}">
   </td>
