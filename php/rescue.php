@@ -124,8 +124,15 @@
                   "AND maia_mail_recipients.token = ? " .
                   "AND  SUBSTRING(maia_mail_recipients.token FROM 1 FOR 7) <> 'expired' " .
                   "AND maia_mail_recipients.recipient_id = ?";
-        $sth = $dbh->query($select, array($token, $euid));
-        while ($row = $sth->fetchRow())
+        $sth = $dbh->prepare($select);
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage() . ": " . $dbh->last_query . " [" . $token . "] [" . $euid . "]");
+        }
+	$res = $sth->execute(array($token, $euid));
+        if (PEAR::isError($res)) {
+            die($res->getMessage() . ": " . $dbh->last_query . " [" . $token . "] [" . $euid . "]");
+        }
+        while ($row = $res->fetchRow())
         {
             $mail_id = $row["id"];
             $sender  = $row["sender_email"];
@@ -151,8 +158,15 @@
                   "AND maia_mail_recipients.token = ? " .
                   "AND  SUBSTRING(maia_mail_recipients.token FROM 1 FOR 7) <> 'expired' " .
                   "AND maia_mail_recipients.recipient_id = ?";
-        $sth = $dbh->query($select, array($token, $euid));
-        while ($row = $sth->fetchRow())
+        $sth = $dbh->prepare($select);
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage() . ": " . $dbh->last_query . " [" . $token . "] [" . $euid . "]");
+        }
+	$res = $sth->execute(array($token, $euid));
+        if (PEAR::isError($res)) {
+            die($res->getMessage() . ": " . $dbh->last_query . " [" . $token . "] [" . $euid . "]");
+        }
+        while ($row = $res->fetchRow())
         {
             $mail_id = $row["id"];
             $sender  = $row["sender_email"];
@@ -178,8 +192,15 @@
                   "AND maia_mail_recipients.token = ? " .
                   "AND  SUBSTRING(maia_mail_recipients.token FROM 1 FOR 7) <> 'expired' " .
                   "AND maia_mail_recipients.recipient_id = ?";
-        $sth = $dbh->query($select, array($token, $euid));
-        while ($row = $sth->fetchRow())
+        $sth = $dbh->prepare($select);
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage() . ": " . $dbh->last_query . " [" . $token . "] [" . $euid . "]");
+        }
+	$res = $sth->execute(array($token, $euid));
+        if (PEAR::isError($res)) {
+            die($res->getMessage() . ": " . $dbh->last_query . " [" . $token . "] [" . $euid . "]");
+        }
+        while ($row = $res->fetchRow())
         {
             $mail_id = $row["id"];
             $sender  = $row["sender_email"];
@@ -205,8 +226,15 @@
                   "AND maia_mail_recipients.token = ? " .
                   "AND  SUBSTRING(maia_mail_recipients.token FROM 1 FOR 7) <> 'expired' " .
                   "AND maia_mail_recipients.recipient_id = ?";
-        $sth = $dbh->query($select, array($token, $euid));
-        while ($row = $sth->fetchRow())
+        $sth = $dbh->prepare($select);
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage() . ": " . $dbh->last_query . " [" . $token . "] [" . $euid . "]");
+        }
+	$res = $sth->execute(array($token, $euid));
+        if (PEAR::isError($res)) {
+            die($res->getMessage() . ": " . $dbh->last_query . " [" . $token . "] [" . $euid . "]");
+        }
+        while ($row = $res->fetchRow())
         {
             $mail_id = $row["id"];
             $sender  = $row["sender_email"];
@@ -231,8 +259,15 @@
                   "AND maia_mail_recipients.token = ? " .
                   "AND  SUBSTRING(maia_mail_recipients.token FROM 1 FOR 7) <> 'expired' " .
                   "AND maia_mail_recipients.recipient_id = ?";
-        $sth = $dbh->query($select, array($token, $euid));
-        while ($row = $sth->fetchRow())
+        $sth = $dbh->prepare($select);
+        if (PEAR::isError($sth)) {
+            die($sth->getMessage() . ": " . $dbh->last_query . " [" . $token . "] [" . $euid . "]");
+        }
+	$res = $sth->execute(array($token, $euid));
+        if (PEAR::isError($res)) {
+            die($res->getMessage() . ": " . $dbh->last_query . " [" . $token . "] [" . $euid . "]");
+        }
+        while ($row = $res->fetchRow())
         {
             $mail_id = $row["id"];
             $sender  = $row["sender_email"];
