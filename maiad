@@ -4294,7 +4294,13 @@ sub maia_record_tests($$$$$) {
     if (!$mail_score) {
 	   $mail_score = 0.0;
     }
+
+    my($autolearn_status, $autolearn_status_force) = split(' ', $autolearn_status);
     $autolearn_status = validate($autolearn_status, '^([a-z]{2,15})$', 'si');
+    if(!$autolearn_status) {
+        $autolearn_status = 'unavailable';
+    }
+
     my $test_list = validate($spam_status, 'tests=(.*)', 'si');
     $test_list =~ s/[\s\t\n]//g;
     my @tests = split ",", $test_list;
