@@ -8,5 +8,9 @@ Some features are known to be untested and probably broken, such as authenticati
 
 There are some new requirements on PHP modules, these are easiest identified by running the standard configtest.php.
 
-I would greatly appreciate an updated installation guide for this fork, if anyone wanted to contribute.
 
+# Status
+
+This fork was created to resolve specific issues and for the purpose of providing the community a place to send patches when the mainline was unresponsive.
+
+I am happy to assist with ongoing merging however please note there is no intent in writing new features for this application.
