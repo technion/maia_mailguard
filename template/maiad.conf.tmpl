@@ -1,0 +1,540 @@
+# Sample maiad.conf file for Maia Mailguard 1.0.4r
+
+use strict;
+
+###########################################################################
+#                                                                         #
+#   MAIAD: Daemon parameters                                              #
+#                                                                         #
+###########################################################################
+
+# Number of maiad children to spawn ($max_servers)
+#   * Default is 2
+#   * Should match the number of listening mail server processes,
+#       e.g. for Postfix, in master.cf, set this value in the maxproc
+#       column of the smtp-maia interface.
+#   * Start with 2, increase gradually as needed (2-15 is common)
+
+$max_servers = 2;
+
+
+# Maiad will run as user ($daemon_user)
+#   * Typically 'maia'; sometimes 'amavis' or 'vscan'
+
+$daemon_user  = 'maia';
+
+
+# Maiad will run as group ($daemon_group)
+#   * Typically 'maia'; sometimes 'amavis' or 'vscan'
+
+$daemon_group = 'maia';
+
+
+# Maiad's home directory ($MYHOME)
+#   * Where maiad expects to find supporting files
+#   * Should be owned by $daemon_user, group $daemon_group
+
+$MYHOME = '/var/lib/maia';
+$TEMPBASE = "$MYHOME/tmp";
+
+###########################################################################
+#                                                                         #
+#   CHROOT: Should we run in an chroot environment?                       #
+#                                                                         #
+###########################################################################
+
+# Chroot directory ($daemon_chroot_dir)
+#   * Optional; set to undef to disable chroot
+#   * Typically set to $MYHOME when enabled
+#   * Note that in chrooted environments many default paths will
+#       need to be overridden; see below.
+
+$daemon_chroot_dir = undef;
+
+
+# Path overrides for chrooted environments
+#   * Uncomment and adjust as necessary if using chroot
+
+# $lock_file = "$daemon_chroot_dir/var/lock/maia/maiad.lock";
+# $pid_file = "$daemon_chroot_dir/var/run/maia/maiad.pid";
+
+
+###########################################################################
+#                                                                         #
+#   IDENTIFICATION: Who are we?                                           #
+#                                                                         #
+###########################################################################
+
+# Custom mail header ($X_HEADER_TAG)
+#   * Will appear in the headers of filtered mail
+#   * Should begin with 'X-' to avoid conflicts with standard headers
+
+$X_HEADER_TAG = 'X-Virus-Scanned';
+
+
+# Custom product identifier ($X_HEADER_LINE)
+#   * Will appear in the headers of filtered mail
+#   * Typically the name of the mail filter, e.g. 'Maia Mailguard'
+
+$X_HEADER_LINE = "Maia Mailguard 1.0.4r";
+
+
+# Mail domain ($mydomain)
+#   * The domain portion of your email addresses
+#   * Typically 'yourdomain.tld'
+
+$mydomain = '__DOMAIN__';
+
+
+# Hostname ($myhostname)
+#   * Used to identify this host in Received: headers
+#   * Must be a fully-qualified domain name!
+
+$myhostname = '__HOST__.__DOMAIN__';
+
+
+###########################################################################
+#                                                                         #
+#   INPUT: How will we receive unfiltered mail?                           #
+#                                                                         #
+###########################################################################
+
+# Network interface ($inet_socket_bind)
+#   * Specific IP address, or '' to listen on all interfaces
+#   * If your mail server is hosted on the same machine as maiad,
+#       you will want to use the default (127.0.0.1).
+#   * If your mail server is hosted on a different machine,
+#       set this to a non-localhost IP address which is visible
+#       to your mail server.
+
+$inet_socket_bind = '127.0.0.1'; 
+
+
+# Listening port ($inet_socket_port)
+#   * Specific port number on which maiad should listen
+#   * Typically 10024
+
+$inet_socket_port = 10024;
+
+
+# Access control (@inet_acl)
+#   * Only these hosts are allowed to connect to maiad
+#   * This must include your mail server host!
+
+@inet_acl = qw( 127.0.0.1  ::1 );
+
+
+###########################################################################
+#                                                                         #
+#   OUTPUT: Where will we send filtered mail?                             #
+#                                                                         #
+###########################################################################
+
+# Downstream relay ($forward_method)
+#   * Format is 'protocol:host:port'
+#   * protocol is one of 'smtp', 'bsmtp', or 'pipe'
+#   * host and port should point to a mail server which
+#       only accepts mail from maiad.  Typically this is
+#       a specially-configured mail server on the same
+#       host (i.e. localhost).
+
+$forward_method = 'smtp:[127.0.0.1]:10025';
+
+
+###########################################################################
+#                                                                         #
+#   LOGGING: What should we log, and where?                               #
+#                                                                         #
+###########################################################################
+
+# Verbosity ($log_level)
+#   * Determines how much detail is included in the log
+#   * Range is 0 (quiet) to 5 (very detailed)
+#   * Increase temporarily as needed to diagnose problems, but
+#       set to 0 or 1 for production servers.
+
+$log_level = 0;
+
+
+# Use syslog? ($DO_SYSLOG)
+#   * Set to 1 to send logs to syslog, 0 to disable
+#   * If enabled, configure $SYSLOG_LEVEL as well
+
+$DO_SYSLOG = 0;
+
+
+# Syslog logging facility and level ($SYSLOG_LEVEL)
+#   * Only used when $DO_SYSLOG is enabled
+#   * Typically 'mail.debug' or 'mail.info'
+
+$SYSLOG_LEVEL = 'mail.debug';
+
+
+# Log file ($LOGFILE)
+#   * Only used when $DO_SYSLOG is disabled
+
+$LOGFILE = "/var/log/maia/maiad.log";
+
+
+###########################################################################
+#                                                                         #
+#   DATABASES: Configuring Maia's databases                               #
+#                                                                         #
+###########################################################################
+
+# Database connection string
+#   * Format is ['DBI:dbtype:dbname:dbhost:dbport, dbuser, dbpass]
+#   * dbtype is 'mysql' (for MySQL) or 'Pg' (for PostgreSQL)
+#   * dbname is the name of Maia's database, typically 'maia'
+#   * dbhost is the hostname of the database server
+#   * dbport is the port on which the database accepts TCP connections
+#   * dbuser is the name of your Maia database user, typically 'maia'
+#   * dbpass is the Maia database user's password
+
+@lookup_sql_dsn = ( ['DBI:mysql:maia:localhost:3306', 'maia', '__PASSWORD__'] );
+
+
+# BerkeleyDB/libdb ($enable_db)
+#   * Set to 1 to enable the use of BerkeleyDB features, 0 to disable
+#   * If enabled, stores data for optional SNMP agents and nanny utility
+#   * Required for the optional Message-ID cache feature
+
+$enable_db = 1;
+
+
+# Message-ID cache ($enable_global_cache)
+#   * Set to 1 to enable the Message-ID cache feature, 0 to disable
+#   * Uses BerkeleyDB/libdb to store a temporary cache of Message-ID
+#       headers, to avoid unnecessary scanning of duplicate messages.
+#   * Mainly useful for sites hosting mailing lists
+#   * Only used when $enable_db = 1
+
+$enable_global_cache = 1;
+
+
+###########################################################################
+#                                                                         #
+#   UNPACKERS: Extra tools for unpacking attachments                      #
+#                                                                         #
+###########################################################################
+
+# Search path ($path)
+#   * Used by maiad to locate external tools
+
+$path = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/sbin:/usr/bin:/bin';
+
+
+# Specific tools
+#   * Names of unpacking tools available to maiad
+#   * Full pathnames can be supplied (e.g. '/usr/bin/file')
+#   * Short names (e.g. 'gzip') will be looked up using the search path
+#   * Arguments can be supplied (e.g. 'gzip -d')
+#   * Multiple options can be supplied, tried in order,
+#       e.g. ['arj', 'unarj']
+#   * Comment out or delete tools which are not available
+
+$file        = '/usr/bin/file';   # file(1) utility; use recent versions
+$gzip        = 'gzip';
+$bzip2       = 'bzip2';
+$lzop        = 'lzop';
+$rpm2cpio    = ['rpm2cpio.pl','rpm2cpio'];
+$cabextract  = 'cabextract';
+$uncompress  = ['uncompress', 'gzip -d', 'zcat'];
+$unfreeze    = ['unfreeze', 'freeze -d', 'melt', 'fcat'];
+$arc         = ['nomarch', 'arc'];
+$unarj       = ['arj', 'unarj'];
+#$unrar      = ['rar', 'unrar'];
+$zoo         = 'zoo';
+$lha         = 'lha';
+$cpio        = ['gcpio','cpio'];
+$ar          = 'ar';
+$dspam       = 'dspam';
+$pax         = 'pax';
+$ripole      = 'ripole';
+
+
+# Maximum archive nesting level ($MAXLEVELS)
+#   * When unpacking archives within archives, this prevents maiad
+#       from continuing indefinitely, wasting resources, and falling
+#       victim to mail bombs.
+#   * Set to 0 for unlimited depth
+
+$MAXLEVELS = 14;
+
+
+# Maximum number of files to unpack ($MAXFILES)
+#   * Limits the total number of files maiad will unpack from an
+#       archive, as a safeguard against mail bombs and excessive
+#       resource consumption.
+#   * Set to 0 to remove this limit
+
+$MAXFILES = 1500;
+
+
+# Archive expansion limits ($MIN_EXPANSION_QUOTA and $MAX_EXPANSION_QUOTA)
+#   * Sets reasonable limits on the total size of an email (in bytes) 
+#       once its attachments have been unpacked and expanded.
+#   * No further attachments will be unpacked once this quota is reached
+#   * Set to undef to remove either of these limits
+
+$MIN_EXPANSION_QUOTA =      100*1024;
+$MAX_EXPANSION_QUOTA = 300*1024*1024;
+
+
+# MIME-wrapping ($defang_virus and $defang_banned)
+#   * Converts malware and banned file types to attachments
+#   * Only used when recipients choose 'Labeled' for their
+#       virus and banned attachment filters. 
+
+$defang_virus  = 1;
+$defang_banned = 1;
+
+
+###########################################################################
+#                                                                         #
+#   SPAM: Configuration parameters for SpamAssassin                       #
+#                                                                         #
+###########################################################################
+
+# Spam subject prefix ($sa_spam_subject_tag)
+#   * Prefixes the Subject: headers of spam with a fixed string
+#   * Recipients can use this string to configure their mail clients to
+#       act on such items appropriately (e.g. automatically move them to
+#       a 'Spam' folder, etc.).
+#   * Only used when recipients choose 'Labeled' for their spam filters.
+
+$sa_spam_subject_tag = '***SPAM*** ';
+
+# Size limit ($sa_mail_body_size_limit)
+#   * Mail larger than this size will not be sent to SpamAssassin for
+#       analysis, in order to conserve resources.
+#   * All other scanners are unaffected by this setting
+
+$sa_mail_body_size_limit = 512*1024;
+
+# Local tests only? ($sa_local_tests_only)
+#   * Set to 1 to force SpamAssassin to limit itself to tests which
+#       can be performed without network access, 0 otherwise.
+#   * Disables DNSBL tests, Razor, Pyzor, DCC, SPF, DKIM, etc.
+
+$sa_local_tests_only = 0;
+
+# Timeout ($sa_timeout)
+#   * Sets the number of seconds to allow SpamAssassin to analyze an
+#       email before it gives up.
+#   * Prevents SpamAssassin from getting hung on large emails, or
+#       waiting indefinitely for a network service to respond.
+
+$sa_timeout = 60;
+
+
+###########################################################################
+#                                                                         #
+#   BANNED ATTACHMENT TYPES: What file types should we look for?          #
+#                                                                         #
+###########################################################################
+
+# Banned file patterns ($banned_filename_re)
+#   * A global list of regular expressions matched against filenames,
+#       MIME-types, and file(1) types.
+#   * Special pattern qr'^UNDECIPHERABLE$' can be used to match email
+#       that contains attachments which could not be decoded or
+#       unpacked (e.g. encrypted items, password-protected archives, etc.). 
+#   * Can also be used to whitelist specific patterns as well, e.g.
+#       [ qr'pattern' => 0 ]
+
+$banned_filename_re = new_RE(
+# qr'^UNDECIPHERABLE$',  # is or contains any undecipherable components
+
+  # block certain double extensions anywhere in the base name
+  qr'\.[^./]*\.(exe|vbs|pif|scr|bat|cmd|com|cpl|dll)\.?$'i,
+
+# qr'[{}]',      # curly braces in names (serve as Class ID extensions - CLSID)
+
+  qr'^application/x-msdownload$'i,                  # block these MIME types
+  qr'^application/x-msdos-program$'i,
+  qr'^application/hta$'i,
+  qr'^message/partial$'i, qr'^message/external-body$'i, # rfc2046 MIME types
+
+# [ qr'^\.(Z|gz|bz2)$'           => 0 ],  # allow any type in Unix-compressed
+# [ qr'^\.(rpm|cpio|tar)$'       => 0 ],  # allow any type in Unix archives
+# [ qr'^\.(zip|rar|arc|arj|zoo)$'=> 0 ],  # allow any type within such archives
+
+# qr'.\.(exe|vbs|pif|scr|bat|cmd|com|cpl)$'i, # banned extension - basic
+  qr'.\.(ade|adp|app|bas|bat|chm|cmd|com|cpl|crt|exe|fxp|hlp|hta|inf|ins|isp|
+         js|jse|lnk|mda|mdb|mde|mdw|mdt|mdz|msc|msi|msp|mst|ops|pcd|pif|prg|
+         reg|scr|sct|shb|shs|vb|vbe|vbs|wsc|wsf|wsh)$'ix,  # banned ext - long
+
+# qr'.\.(mim|b64|bhx|hqx|xxe|uu|uue)$'i,  # banned extension - WinZip vulnerab.
+
+  qr'^\.(exe-ms)$',                       # banned file(1) types
+  qr'^\.(exe|lha|cab|dll)$',              # banned file(1) types
+);
+
+
+###########################################################################
+#                                                                         #
+#   VIRUS/MALWARE SCANNERS: Which scanners should we use?                 #
+#                                                                         #
+###########################################################################
+
+# Primary scanners (@av_scanners)
+#   * All primary scanners are consulted simultaneously
+#   * If no primary scanners are available, the secondary scanners
+#       are consulted.
+#   * Typically more efficient, daemonized scanners
+#   * See http://www.maiamailguard.com/maia/wiki/VirusScannerConfig
+#       for more virus scanner definitions.
+
+@av_scanners = (
+
+# Clam Antivirus Daemon (clamd)
+['ClamAV-clamd',
+   \&ask_daemon, ["CONTSCAN {}\n", "/var/run/clamav/clamd.sock"],
+   qr/\bOK$/m, qr/\bFOUND$/m,
+   qr/^.*?: (?!Infected Archive)(.*) FOUND$/m ],
+# NOTE: run clamd under the same user as maiad, or run it under its own
+#       uid such as clamav, add user clamav to the maia group, and then
+#       add AllowSupplementaryGroups to clamd.conf;
+# NOTE: match the socket name (LocalSocket) in clamd.conf to the socket
+#       name in this entry;
+# NOTE: when running chrooted one may prefer socket "$MYHOME/clamd".
+
+);
+
+
+# Secondary scanners (@av_scanners_backup)
+#   * Only used if all primary scanners fail
+#   * Typically command-line (non-daemonized) scanners
+#   * See http://www.maiamailguard.com/maia/wiki/VirusScannerConfig
+#       for more virus scanner definitions.
+
+@av_scanners_backup = (
+
+# Clam Antivirus Command-Line Scanner (clamscan)
+['ClamAV-clamscan', 'clamscan',
+  "--stdout --no-summary -r --tempdir=$TEMPBASE {}",
+  [0], qr/:.*\sFOUND$/m, qr/^.*?: (?!Infected Archive)(.*) FOUND$/m ],
+
+);
+
+
+###########################################################################
+#                                                                         #
+#   VIRUS/MALWARE HANDLING: What should we scan, and how?                 #
+#                                                                         #
+###########################################################################
+
+# Viruses that forge sender addresses (@viruses_that_fake_sender_maps)
+#   * Helps maiad determine whether the sender of a virus-infected email
+#       is likely to be forged.
+#   * Almost all modern malware has forged sender addresses
+#   * A list of regular expression patterns which will be tested against
+#       the output of your virus scanners.
+#   * Exceptions can be whitelisted, e.g. [ qr'pattern' => 0 ]
+
+@viruses_that_fake_sender_maps = (new_RE(
+  [qr'\bEICAR\b'i => 0],  # an exception for the EICAR test 'virus'
+  [qr/.*/ => 1],          # true for everything else
+));
+
+
+# Don't always trust unpackers (@keep_decoded_original_maps)
+#   * Determines when maiad should send the entire raw contents
+#       to the virus scanners, rather than just the individual attachments.
+#   * Useful when unpackers for specific file types are not reliable,
+#       or simply not available.
+#   * Also useful for scanners which use signatures to detect spam in
+#       the body of an email
+#   * A list of regular expression patterns matched against file(1) types
+#   * Special pattern 'MAIL' always submits the raw mail contents in
+#       addition to the decoded parts, at the cost of additional resources.
+#   * Special pattern 'MAIL-UNDECIPHERABLE' only submits the raw contents
+#       when one or more attachments cannot be unpacked (e.g. encrypted
+#       attachments, password-protected archives, etc.).
+
+@keep_decoded_original_maps = (new_RE(
+# qr'^MAIL$',                # always scan the raw mail
+  qr'^MAIL-UNDECIPHERABLE$', # only if it contains undecipherables
+  qr'^(ASCII(?! cpio)|text|uuencoded|xxencoded|binhex)'i,
+));
+
+
+# Viruses that are actually spam (@non_malware_viruses_maps)
+#   * Some virus scanners (e.g. ClamAV) use signatures to detect spam,
+#       scams, and phishing attempts, which are not malware in the usual
+#       sense (i.e. they do not contain a dangerous executable payload).
+#   * A list of regular expression patterns matched against the output
+#       of your virus scanners, to identify items that should be treated
+#       as spam instead.
+#   * Unofficial ClamAV signatures from Sanesecurity, MSRBL, SecuriteInfo,
+#       Doppelstern, Winnow, etc. must be installed separately,
+#       see: http://www.sanesecurity.com/ or check your package manager
+#       for 'clamav-unofficial-sigs'.
+#   * Requires qr'^MAIL$' in @keep_decoded_original_maps, above
+#   * SpamAssassin rule files (e.g. sanesecurity.cf, msrbl.cf, clamav.cf,
+#       etc.) are also required.
+
+@non_malware_viruses_maps = (new_RE(
+
+   # ClamAV: main.cld, daily.cld
+   qr'^(Email|E-Mail)\.(Ecard|Faketube|FreeGame|PornTeaser)',
+   qr'^(Email|E-Mail)\.(Hoax|Phishing)\.',
+   qr'^(HTML|Heuristics)\.Phishing\.',
+
+   # Sanesecurity: junk.ndb
+   qr'^Sanesecurity\.Junk\.',
+
+   # Sanesecurity: jurlbl.ndb
+   qr'^Sanesecurity\.Jurlbl\.',
+
+   # Sanesecurity: jurlbla.ndb
+   qr'^Sanesecurity\.Jurlbl\.Auto\.',
+
+   # Sanesecurity: lott.ndb
+   qr'^Sanesecurity\.Lott\.',
+
+   # Sanesecurity: phish.ndb
+   qr'^Sanesecurity\.(Auction|Casino|Doc|Phishing)\.',
+   qr'^Sanesecurity\.(PhishingTestSig|TestSig_Type3_Bdy|TestSig_Type4_Bdy|TestSig_Type4_Hdr)',
+
+   # Sanesecurity: scam.ndb
+   qr'^Sanesecurity\.(Casino|Cred|Dipl|Hdr|Img|Img0|Job|Loan|Porn|Scam|Scam4|ScamL|Spam|Spam4|SpamL|Stk)\.',
+   qr'^Sanesecurity\.TestSig',
+
+   # Sanesecurity: spam.ldb
+   qr'^Sanesecurity\.Spam\.',
+
+   # Sanesecurity: spamattach.hdb
+   qr'^Sanesecurity\.SpamAttach\.',
+
+   # Sanesecurity: spamimg.hdb
+   qr'^Sanesecurity\.SpamImg\.',
+
+   # Sanesecurity: spear.ndb
+   qr'^Sanesecurity\.Spear\.',
+
+   # Sanesecurity: spearl.ndb
+   qr'^Sanesecurity\.SpearL\.',
+
+   # MSRBL: MSRBL-Images.hdb
+   qr'^MSRBL-Images\.[0-5,S]-',
+   qr'^MSRBL-Images.Test-',
+
+   # MSRBL: MSRBL-SPAM.hdb
+   qr'^MSRBL-SPAM\.',
+
+   # SecuriteInfo: securiteinfo.hdb
+   qr'^Email\.Spam\d+-SecuriteInfo\.com',
+
+   # Doppelstern: doppelstern.hdb
+   qr'^Doppelstern\.Attachment\.',
+
+   # Winnow: winnow_phish_complete_url.ndb
+   qr'^winnow\.(phish|scam)\.',
+));
+
+
+###########################################################################
+
+1;  # ensure a defined return

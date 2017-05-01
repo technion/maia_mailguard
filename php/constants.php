@@ -74,8 +74,8 @@
      *
      */
 
-    define("MAIA_VERSION", "1.0.4");
-    define("MAIA_SESSION", "Maia104");
+    define("MAIA_VERSION", "1.0.4r");
+    define("MAIA_SESSION", "Maia104r");
 
     define("KILOBYTE", 1024);
     define("MEGABYTE", KILOBYTE * 1024);

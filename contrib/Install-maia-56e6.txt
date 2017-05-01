@@ -1,0 +1,669 @@
+= Installing Maia Mailguard =
+
+Maia Mailguard is an anti-spam and anti-virus framework that ties together the functionality of
+many other tools, but as such it is not easy to provide a single set of installation steps to
+walk you through the process from start to finish.  There are too many options--Postfix or Sendmail?
+MySQL or PostgreSQL?  Apache or IIS?  Linux or FreeBSD?--to be able to provide that sort of guide.
+That said, walk-throughs for some popular combinations are available in our [wiki:ContribDocs User-Contributed Documentation] section.
+
+What follows here, then, are generic installation steps for Maia Mailguard.  We assume that you
+have already installed your operating system, your mail server (Postfix, Sendmail, etc.), your
+database (MySQL or PostgreSQL), your web server (Apache, etc. with PHP support), SpamAssassin, and
+your virus scanners.  The instructions that follow will tell you how to modify the configurations
+of these applications for Maia's purposes, and of course how to install Maia itself.
+
+
+== 1. Create a user and group for amavisd to run under, if necessary ==
+
+The amavisd-maia process should be running under its own userid and group, as specified in your /etc/amavisd.conf file as:
+
+{{{
+$daemon_user = 'amavis';
+$daemon_group = 'amavis';
+}}}
+
+Throughout this documentation we'll be assuming the username you're using for this purpose is `amavis`, and the group name is `amavis`; substitute your own values if you've chosen something different.
+
+If you haven't already created this user and group, do so now, making sure to set a password for this user:
+
+{{{
+[root]# useradd amavis
+[root]# passwd amavis
+[root]# groupadd amavis
+}}}
+
+== 2. Create a new database for Maia Mailguard ==
+
+Maia Mailguard supports a number of SQL databases.  The documentation may refer in places to MySQL, since this is a common database, but bear in mind that you should be able to get Maia Mailguard working with PostgreSQL as well.
+
+To create a new database with MySQL, type the following (you can omit the "-p" if your MySQL installation allows root to login without a password, but really, you ''should'' always have a password, especially for root!):
+
+{{{
+[root]# mysql -u root -p mysql
+
+mysql> CREATE DATABASE maia;
+}}}
+
+The procedure for creating a database will vary from one database to another; consult your database documentation to find the right way to do this for your database.
+
+'''NOTE:''' Newer versions of PostgreSQL use UTF8 encoding by default, which is not supported by all of
+the tools that Maia requires.  To avoid encoding errors, PostgreSQL users should use:
+
+{{{
+pgsql> CREATE DATABASE maia WITH ENCODING 'LATIN1';
+}}}
+
+To create and stock the necessary database tables, use the definitions in the maia-mysql.sql file, i.e.:
+
+{{{
+[root]# mysql -u root -p maia < maia-mysql.sql
+}}}
+
+The SQL syntax in this file is designed for MySQL, and may need to be modified slightly to accommodate other databases (e.g. your database may have different keywords for `unsigned` or `auto_increment`).  The maia-pgsql.sql file contains the table definitions for use with PostgreSQL, for example.
+
+Now you need to give the amavis user limited access to this database (in place of `passwd` be sure to use the password you set for the `amavis` user):
+
+{{{
+[root]# mysql -u root -p maia
+
+mysql> GRANT CREATE, DROP, ALTER, SELECT, INSERT, UPDATE, DELETE ON maia.* TO amavis@localhost IDENTIFIED BY 'passwd';
+}}}
+
+Again, how you grant privileges to a database user will vary from package to package. Consult your database documentation for more specific details.
+
+If you're using MySQL, you'll also need to add (or increase) the `max_allowed_packet` setting in your my.cnf file. This setting determines the size of the largest mail item you'll be able to process with Maia, so make sure to set this value large enough to accommodate your needs. (You'll be able to tell Maia later on what to do with mail larger than this.)  Note that in MySQL version prior to 4.0.1, the maximum packet size is 16M; later versions can accept packets as large as 1G.
+
+{{{
+MySQL versions prior to 4.0.2:
+[mysql]
+set-variable = max_allowed_packet=5M
+
+MySQL 4.0.2 or later:
+[mysql]
+max_allowed_packet=5M
+}}}
+
+== 3. Install the Maintenance Scripts and Templates ==
+
+Maia Mailguard comes with a collection of Perl scripts in the scripts subdirectory. Install these files in a place that your web server can't access (i.e. outside of your document root), so that they can't be triggered by web visitors.  A good place for these is in a subdirectory of your amavisd directory, e.g. /var/amavisd/maia. Create two subdirectories there, one for scripts, the other for templates:
+
+{{{
+[root]# mkdir /var/amavisd/maia
+[root]# mkdir /var/amavisd/maia/scripts
+[root]# mkdir /var/amavisd/maia/templates
+}}}
+
+Now copy the contents of Maia's scripts subdirectory into /var/amavisd/maia/scripts, and put the contents of the templates subdirectory into /var/amavisd/maia/templates.
+
+Set the ownership of all of these files to the `amavis` user and group, and tighten up the permissions on these files so that they're accessible only to the `amavis` user:
+
+{{{
+[root]# chown -R amavis /var/amavisd/maia
+[root]# chgrp -R amavis /var/amavisd/maia
+[root]# chmod 640 /var/amavisd/maia/templates/*.tpl
+[root]# chmod 750 /var/amavisd/maia/scripts/*.pl
+}}}
+
+Before any of the supplied scripts can be used, you need to copy the maia.conf.dist file to [wiki:MaiaConfigFile /etc/maia.conf] and edit it to provide some basic information about how to connect to your database, and how the scripts themselves should behave.  By storing this information in the [wiki:MaiaConfigFile /etc/maia.conf] file, you won't need to supply that information as command-line arguments when you run the scripts themselves.
+
+{{{
+[root]# cp maia.conf.dist /etc/maia.conf
+[root]# chown amavis /etc/maia.conf
+[root]# chgrp amavis /etc/maia.conf
+[root]# chmod 640 /etc/maia.conf
+}}}
+
+The most important settings in the [wiki:MaiaConfigFile /etc/maia.conf] file are the ones that determine how the scripts should connect to your Maia database.
+
+For MySQL:
+{{{
+# Configure your Maia database DSN here
+$dsn = "DBI:mysql:maia:localhost:3306";
+
+# Your Maia database user's login name
+$username = "amavis";
+
+# Your Maia database user's password
+$password = "passwd";
+}}}
+
+For PostgreSQL:
+{{{
+# Configure your Maia database DSN here
+$dsn = "DBI:Pg:dbname=maia;host=localhost;port=5432";
+
+# Your Maia database user's login name
+$username = "amavis";
+
+# Your Maia database user's password
+$password = "passwd";
+}}}
+
+You'll also want to tell Maia where you installed the maintenance scripts:
+
+{{{
+# The directory where Maia's Perl scripts can be found.
+$script_dir = "/var/amavisd/maia/scripts";
+}}}
+
+That's all you need to configure for now; you can read the separate documentation for the [wiki:MaintenanceScripts maintenance scripts] later, before you use them.
+
+== 4. Test your amavisd-maia and SpamAssassin configuration ==
+
+SpamAssassin and amavisd-maia both rely on a number of Perl modules and system utilities to function properly. Before going any further, you can use the [wiki:configtest.pl configtest.pl] script to verify that you have all of the necessary modules and utilities installed, and that their versions are new enough to be useful.  You'll want to run this script on all of the machines where you run SpamAssassin and amavisd-maia.
+
+If the script tells you that you need to upgrade or install a Perl module or utility, do so now, and then re-run the script to make sure. The output should look something like this:
+
+{{{
+MAIA MAILGUARD CONFIGURATION TEST
+
+This script checks for the presence of applications and Perl modules
+required by amavisd-maia, SpamAssassin, and Maia Mailguard's maintenance
+scripts.  Version numbers are also checked, and if a newer version of
+a component is recommended, you should consider upgrading to at least
+the minimum recommended version.
+
+If you have already configured your Maia Mailguard database, the script
+will also test the connection to that database.
+
+Remember also to run the configtest.php script on your web server to
+perform similar tests of your web, PHP, and PEAR environment.
+
+Application/Module      Version   Status
+========================================================================
+Perl                 :    5.8.3 : OK
+file(1)              :     4.16 : OK
+Archive::Tar         :     1.10 : OK
+Archive::Zip         :     1.16 : OK
+BerkeleyDB           :     0.26 : OK
+Compress::Zlib       :     1.41 : OK
+Convert::TNEF        :     0.17 : OK
+Convert::UUlib       :     1.06 : OK
+Crypt::Blowfish      :     2.09 : OK
+Crypt::CBC           :     2.12 : OK
+Crypt::OpenSSL::RSA  :     0.22 : OK
+Data::UUID           :     0.13 : OK
+DB_File              :    1.810 : OK
+DBD::mysql           :   3.0002 : OK
+DBD::Pg              :     1.31 : OK
+DBI                  :     1.50 : OK
+Digest::MD5          :     2.33 : OK
+Digest::SHA1         :     2.07 : OK
+File::Spec           :     3.01 : OK
+HTML::Parser         :     3.35 : OK
+HTTP::Date           :     1.46 : OK
+IO::Stringy          :    2.109 : OK
+IO::Zlib             :     1.03 : OK
+IP::Country          :     2.20 : OK
+LWP::UserAgent       :    2.032 : OK
+Mail::Address        :     1.64 : OK
+Mail::DomainKeys     :     0.80 : OK
+Mail::Internet       :     1.64 : OK
+Mail::SpamAssassin   :    3.1.1 : OK
+Mail::SPF::Query     :  1.999.1 : OK
+MIME::Base64         :     3.05 : OK
+MIME::Parser         :    5.420 : OK
+MIME::QuotedPrint    :     3.03 : OK
+Net::CIDR::Lite      :     0.15 : OK
+Net::DNS             :     0.57 : OK
+Net::Server          :     0.93 : OK
+Net::SMTP            :     2.29 : OK
+Pod::Usage           :     1.16 : OK
+Template             :     2.14 : OK
+Time::HiRes          :     1.61 : OK
+Unix::Syslog         :     0.99 : OK
+URI                  :     1.31 : OK
+
+Database DSN test    : PASSED
+}}}
+
+If you're looking for a starting point for configuring amavisd, a [wiki:AmavisConfigFile sample amavisd.conf file] is provided with the Maia Mailguard distribution. Similarly, a [wiki:SAConfigFile sample local.cf file] is provided for SpamAssassin.
+
+== 5. Load your SpamAssassin rules ==
+
+Maia Mailguard needs to index all of the SpamAssassin rules you have installed on your system, so that these rules, their descriptions and scores can be loaded into a database table. To do this, use one of the scripts in the scripts subdirectory called [wiki:load-sa-rules.pl load-sa-rules.pl].  Run it with the `--debug` flag the first time, to make sure it's working properly.
+
+{{{
+[root]# ./load-sa-rules.pl --debug
+}}}
+
+If all goes well, this script will scan your system for *.cf and user_prefs files, reading any rule names, descriptions and scores it finds and storing them in the Maia Mailguard database.
+
+You can safely run this script anytime you add new SpamAssassin rules or update your SpamAssassin rule files with new scores. The script will not add the same rule twice, but it will update the score value of a rule that it has seen before. If you use a scheduled job to fetch updated versions of popular SpamAssassin rule sets, e.g. [http://www.exit0.us/index.php?pagename=RulesDuJour RulesDuJour] and/or [http://wiki.apache.org/spamassassin/RuleUpdates sa-update], add this script to the end of your update job to make sure the changes are picked up by Maia Mailguard.
+
+If you use the [http://www.exit0.us/index.php?pagename=RulesDuJour RulesDuJour] script to automatically update your third-party SpamAssassin rules for you (highly recommended), you'll want to modify the SA_RESTART setting in the /etc/rulesdujour/config file to ensure that it runs [wiki:load-sa-rules.pl load-sa-rules.pl] after it makes any rule changes:
+
+{{{
+SA_RESTART="/var/amavisd/maia/scripts/load-sa-rules.pl;/etc/init.d/amavisd restart";
+}}}
+
+If you use the [http://wiki.apache.org/spamassassin/RuleUpdates sa-update] script to update your core SpamAssassin rules (also highly recommended), you'll want to chain your commands so that [wiki:load-sa-rules.pl load-sa-rules.pl ] gets called whenever a rules update takes places:
+
+{{{
+sa-update && /var/amavisd/maia/scripts/load-sa-rules.pl && /etc/init.d/amavisd restart
+}}}
+
+== 6. Install the PHP scripts ==
+
+Decide where you want to install the PHP scripts. This should be a subdirectory somewhere within your web tree. For this example we'll assume a directory called `maia`, just off the document root of the web server (i.e. the relative path to the folder would then be /mail, accessible to the outside world as !http://www.example.com/maia). Copy the contents of the /php subdirectory of the Maia Mailguard distribution to this folder. Please keep in mind some [wiki:MaiaWebSecurity security concerns] when configuring your web server.
+
+There should be several subdirectories beneath the directory with your PHP scripts. Your directory tree in this example should look something like this:
+
+||<document_root>/maia||||
+||<document_root>/maia/admin||configtest and upgrade scripts||
+||<document_root>/maia/images||various global images||
+||<document_root>/maia/libs||include path for Smarty||
+||<document_root>/maia/locale||language packs go here||
+||<document_root>/maia/overlib||a popup library used for toolkits||
+||<document_root>/maia/themes||HTML themes||
+
+Alternately, if you're packaging Maia Mailguard for redistribution, you may wish to install the PHP scripts in a standard location outside the web document tree, e.g. /usr/local/maia/php or somesuch. If you do so however, you'll also need to make that subdirectory visible to your web server and give it script execution permissions (e.g. a <Directory> entry in your httpd.conf file if you use apache).
+
+The web server user needs to be able to write to the theme directories in order to cache the pages. The best way to ensure that you get the permissions right is to follow [wiki:BlankPage these instructions].
+
+== 7. Install the Smarty Template Engine ==
+
+Download and install the [http://smarty.php.net/ Smarty template engine]. You can install it system-wide (so that other applications on the web server can make use of it as well), or simply for Maia's purposes:
+
+For a system-wide installation:
+{{{
+cp -r {path_to_Smarty_files}/lib {php_include_path}/Smarty
+}}}
+
+For a Maia-only installation:
+{{{
+cp -r {path_to_Smarty_files}/lib {document_root}/maia/libs/Smarty
+}}}
+
+== 8. Configure Maia Mailguard: Database and Authentication ==
+
+The config.php file contains a few basic configuration settings that must be adjusted for your site before you can configure the rest of Maia Mailguard's settings. In particular, the language defaults, database connection information and user authentication parameters must be hard-coded here.
+
+=== Language Defaults ===
+
+`$default_display_language` is set by default to "en" (English). If you have other language files installed, you can change this setting to the ISO-639 two-letter language code (e.g. en, fr, ja, de, etc.) that corresponds to the language you wish to use. Note that users can override this on an individual basis, selecting from any installed language. This is simply a default to use if no other language has been selected.
+
+`$default_charset` lets you set the default character set to use, if no other character set has been specified by the user. The default of "ISO-8859-1" is fine for most Western languages.
+
+=== Database Connection ===
+
+`$maia_sql_dsn` is the database connection string that the PEAR::DB functions will use to try to connect to the Maia Mailguard database. The supported database types include:
+
+||'''PEAR::DB Type'''||'''Database'''||
+||`mysql`||MySQL||
+||`pgsql`||PostgreSQL||
+
+The connection string syntax for a TCP-based connection generally looks like this:
+
+{{{
+$maia_sql_dsn = "dbtype://dbuser:passwd@tcp(hostname:port)/dbname";
+}}}
+
+In our case, with database type "mysql", database name "maia" and user "amavis", a host of "localhost" and the standard MySQL port (3306), the connection string should end up looking something like this:
+
+{{{
+$maia_sql_dsn = "mysql://amavis:passwd@tcp(localhost:3306)/maia";
+}}}
+
+A PostgreSQL example:
+
+{{{
+$maia_sql_dsn = "pgsql://amavis:passwd@tcp(localhost:5432)/maia";
+}}}
+
+There are many more variations on the connection string if this doesn't work for you, including options to use Unix sockets instead of TCP, etc.. The [http://pear.php.net/manual/en/package.database.db.intro-dsn.php syntax reference ] may help you if you get stuck.
+
+=== Default Protection Levels ===
+
+The `$protection` setting lets you define the default policy settings for each of four protection levels: "off", "low", "medium", and "high". While users can manually tweak their filter settings if they wish, many users prefer to use administrator-recommended settings instead.
+
+A policy array is a combination of 16 settings (from left to right):
+
+||'''Setting'''||'''amavisd-new equivalent'''||'''Value range'''||
+||Pass viruses through?||`virus_lover`||'Y' or 'N'||
+||Pass spam through?||`spam_lover`||'Y' or 'N'||
+||Pass banned files through?||`banned_files_lover`||'Y' or 'N'||
+||Pass mail with invalid headers through?||`bad_header_lover`||'Y' or 'N'||
+||Disable virus scanning?||`bypass_virus_checks`||'Y' or 'N'||
+||Disable spam checking?||`bypass_spam_checks`||'Y' or 'N'||
+||Disable banned files checking?||`bypass_banned_checks`||'Y' or 'N'||
+||Disable invalid header checking?||`bypass_header_checks`||'Y' or 'N'||
+||Discard viruses?||`discard_viruses`||'Y' or 'N'||
+||Discard spam?||`discard_spam`||'Y' or 'N'||
+||Discard banned files?||`discard_banned_files`||'Y' or 'N'||
+||Discard invalid mail headers?||`discard_bad_headers`||'Y' or 'N'||
+||Add a prefix to spam subjects?||`spam_modifies_subj`||'Y' or 'N'||
+||Add spam score headers when score is >=||`spam_tag_level`||-999.9 to 999.9||
+||Consider mail spam when score is >=||`spam_tag2_level`||-999.9 to 999.9||
+||Quarantine or discard spam when score is >=||`spam_kill_level`||-999.9 to 999.9||
+
+The initial defaults for the four protection levels are as follows:
+
+The 'off' level offers no protection at all. All scanning is disabled, so the filter is effectively transparent, letting everything through:
+{{{
+'off' => array ('Y','Y','Y','Y','Y','Y','Y','Y','N','N','N','N','N','999','999','999'),
+}}}
+
+At the 'low' protection setting, only virus scanning is performed:
+{{{
+'low' => array ('N','Y','Y','Y','N','Y','Y','Y','N','N','N','N','N','999','999','999'),
+}}}
+
+The 'medium' protection setting adds spam scoring headers to the mail when it scores 5.0 or higher, but does not quarantine or discard it. Banned file attachments and mail with invalid headers are passed through:
+{{{
+'medium' => array ('N','N','Y','Y','N','N','Y','Y','N','N','N','N','Y','5','999','999'),
+}}}
+
+The 'high' protection setting adds spam scoring headers to the mail when it scores 1.0 or higher, and quarantines spam that scores 5.0 or higher, along with viruses, banned file attachments, and mail with invalid headers:
+{{{
+'high' => array ('N','N','N','N','N','N','N','N','N','N','N','N','N','1','5','5')
+}}}
+
+These defaults, of course, are just suggestions. Feel free to interpret 'low', 'medium', and 'high' in whatever way makes sense for your organization, and adjust the settings to match.
+
+=== Authentication ===
+
+`$auth_method` determines which authentication method Maia Mailguard uses to verify the login credentials of its users. The currently available options are:
+
+||`$auth_method`||'''Server Type'''||
+||`pop3`||POP3 server||
+||`imap`||IMAP server||
+||`ldap`||LDAP server||
+||`exchange`||Microsoft Exchange Server (experimental)||
+||`sql`||SQL database server||
+||`internal`||Internal SQL ||
+||`external`||External script or application||
+
+`$address_rewriting_type` and `$routing_domain` allow you to compensate for any rewriting that your upstream mail server performs on e-mail addresses. To learn more about this issue and how to configure these settings (if necessary), see [http://www.maiamailguard.com/addresses.php Virtual Hosts, Aliases, and E-mail Addresses].
+
+==== Authenticating with a POP3 server ====
+
+POP3 support is provided by the [http://pear.php.net/package/Net_POP3 PEAR::Net_POP3 module]. If you need SSL support, set `$auth_pop3_port` to 995 and prefix "!ssl://" to `$auth_pop3_host`.
+
+==== Authenticating with an IMAP server ====
+
+IMAP support is provided by the [http://pear.php.net/package/Net_IMAP PEAR::Net_IMAP module]. If you need SSL support, set `$auth_imap_port` to 993 and prefix "!ssl://" to `$auth_imap_host`.
+
+==== Authenticating with an LDAP server ====
+
+LDAP authentication is provided by client libraries from the [ftp://ftp.openldap.org/pub/openldap/openldap-stable.tgz OpenLDAP project], or the University of Michigan's [ftp://terminator.rs.itd.umich.edu/ldap/ldap-3.3.tar.Z ldap-3.3] package. One of these must be downloaded, compiled, and installed, and PHP must be rebuilt with the `--with-ldap=/path/to/ldap` flag.
+
+`$auth_ldap_server` is the hostname or IP address of the LDAP server you want to authenticate with.
+
+`$auth_ldap_password` is the password your LDAP server requires in order to answer queries. This is not the password of the user you want to authenticate.
+
+`$auth_ldap_query` is the LDAP authentication query. The %%USER%% placeholder will be replaced with the username of the user to be authenticated.
+
+`$auth_ldap_bind_dn` is the LDAP distinguished name for binding purposes, typically your organization's name and domain name.
+
+`$auth_ldap_base_dn` is the base LDAP distinguished name, typically your domain name.
+
+`$auth_ldap_attribute` is the name of the query attribute that will return the e-mail address associated with the user's LDAP account.
+
+==== Authenticating with a Microsoft Exchange Server ====
+
+Modern versions of Exchange Server are IMAP-compliant, and should work fine using IMAP authentication, except that an additional "NT Domain" parameter may be required. See the IMAP section above for more information about available option flags.
+
+`$auth_exchange_nt_domain` is the default NT domain to use, if the user leaves the domain field empty.
+
+`$auth_exchange_only_one_domain` can be set to true if all of your users are part of the same NT domain. If this is the case, there's no need to prompt for a domain, the value in `$auth_exchange_nt_domain` will always be used.
+
+`$auth_exchange_params` is essentially an IMAP connection string (see the IMAP section above), but two additional flags are available as placeholders:
+
+||'''Flag'''||'''Meaning'''||
+||/%%NTDOMAIN%%||user-supplied NT domain, or `$auth_exchange_nt_domain`||
+||/%%USER%%||Username||
+
+==== Authentication with an SQL database server ====
+
+SQL authentication uses the Pear::DB library to look up a username and password against a database table, to return an e-mail address for the user, if successful. The password may be stored in plain text, or hashed via crypt() or MD5.
+
+`$auth_sql_dsn` is the database connection string to be used to access the authentication database. This may be a different database from the one Maia Mailguard uses, however the connection string follows the same format.
+
+`$auth_sql_table` is the name of the table that contains the user's authentication information.
+
+`$auth_sql_username_column` is the name of the column that contains the user's username.
+
+`$auth_sql_password_column` is the name of the column that contains the user's password.
+
+`$auth_sql_email_column` is the name of the column that contains the user's e-mail address.
+
+`$auth_sql_password_type` indicates the way the user's password is encrypted in the database:
+
+||`$auth_sql_password_type`||'''Encryption Type'''||
+||`plaintext`||No encryption||
+||`md5`||MD5 hash||
+||`crypt`||crypt() hash||
+
+==== Authenticating with Maia's Internal SQL Database ====
+
+If you want Maia Mailguard to handle its own user database, rather than authenticate against an external source, select the `internal` method. With this method, Maia stores usernames and passwords in its own database.
+
+When new accounts are created, Maia automatically sends the new user an e-mail containing a temporary username and password, which she can change once she logs in (and at any time thereafter).
+
+This authentication method is handy for situations where the other external authentication methods would be impractical, such as hosting mail filtering services for other companies downstream, where there would otherwise be many different sources to authenticate against.
+
+==== Authenticating against an External Mechanism ====
+
+If you have an external application you'd prefer to use to authenticate Maia users, you can specify it via the `$auth_external` setting. This application should accept a username and password on the command line, and return 0 if the login succeeds.
+
+== 9. Test your PHP and database configuration ==
+
+At this point, you'll want to verify that your web server has its PHP correctly compiled, all the necessary PEAR modules installed, and the database DSN correctly configured in config.php. You can do this by loading the [wiki:configtest.php admin/configtest.php] page in your browser.
+
+This script will verify that the prerequisites are properly installed on your web server, and that PHP scripts can successfully communicate with your database server. It will point out any missing components or outdated version numbers and offer some advice for fixing the problem. Fix any problems that get highlighted at this stage and reload the script to verify that they've been properly fixed before proceeding.
+
+== 10. Install amavisd-maia ==
+
+The amavisd-maia file in the Maia Mailguard distribution is a specially-patched version of amavisd-new 2.2.1. If you have used a previous version of Maia Mailguard, you will be pleased to note that patching is no longer required. The patch itself (amavisd-maia.patch) for amavisd-new 2.2.1 is still provided in this distribution, but only for reference purposes.
+
+Install the amavisd-maia file wherever you'd typically install system binaries (e.g. /usr/sbin, /usr/local/sbin, etc.):
+
+{{{
+[root]# cp amavisd-maia /usr/local/sbin/
+[root]# chown root /usr/local/sbin/amavisd-maia
+[root]# chmod 755 /usr/local/sbin/amavisd-maia
+}}}
+
+You may also wish to create a symbolic link to this file, so that any existing scripts looking for 'amavisd' can find it properly:
+
+{{{
+[root]# ln -s /usr/local/sbin/amavisd-maia /usr/local/sbin/amavisd
+}}}
+
+== 11. Generate your site's encryption key (optional, not recommended unless you need it) ==
+
+Maia Mailguard can use strong encryption to protect the contents of the e-mail that it quarantines/caches, as a safeguard against prying eyes with database access. It uses the Blowfish algorithm with a 56-byte (448-bit) key, and chained-block cipher (CBC) mode to do two-way encryption of stored mail. This encryption is completely transparent to the users, and does not require them to install any special software. All encrypting and decrypting is done by Maia Mailguard.
+
+{{{
+#!html
+<div class="wiki-toc">
+}}}
+'''Note''', ''this does not really provide much protection against a determined attacker'' - the key is available only to the web server and to the filter servers - an attacker on those systems can use the key and database connection info to access everything.  It only provides obscurity against accidental reading of things in the database.  Thus, unless you really need it, I'd opt to not use this feature as it wastes processing time and impedes troubleshooting. On the other hand, using SSL encrytion on your web server is a '''''VERY''''' good idea, in order to protect the passwords being entered into the login page.  Configuring SSL is outside the scope of these instructions, as instructions for enabling SSL can be found with your web server's docs.'''''- DGM'''''
+{{{
+#!html
+</div>
+}}}
+To take advantage of this encryption feature, you first need to generate a random key for your site. The [wiki:generate-key.pl generate-key.pl] script can do this for you, just redirect its output to a file:
+
+{{{
+[root]# generate-key.pl > /var/amavisd/blowfish.key
+}}}
+
+Put the key file in your amavisd directory, and be sure to keep another copy of it in a safe place, preferably on another machine offsite, and/or a backup disk/CD. If you suffer a disk crash and lose your key file, you'll need this backup to be able to recover the encrypted contents of your Maia database.
+
+You'll also need to copy this key file to your web server, so that Maia can use it to properly decrypt the stored mail. You can put it anywhere you like on the web server, as long as you tell Maia where it is (using the System Configuration page).
+
+You can safely enable encryption at any time, even after you've already got mail in your database. Maia is smart enough to detect encrypted vs. unencrypted mail, so if your database contains a mixture of both types, it won't cause any problems.
+
+== 12. Configure amavisd-maia ==
+
+Install the [wiki:AmavisConfigFile amavisd.conf] file from the Maia Mailguard distribution into /etc, and edit this file to configure it for your installation, paying special attention to the following particulars:
+
+You'll probably want to turn up debugging output as much as possible to make sure everything is working the way it should:
+
+{{{
+$log_level = 5;
+}}}
+
+With quarantine management, you can safely set the final destiny of viruses and spam to `D_DISCARD`, since in a manner of speaking these items are being "delivered" to a place where the recipients can review them (and recover them if desired). This avoids sending out a lot of noisy Delivery Status Notifications (DSNs), most of which bounce anyway (and create still more noise).
+
+{{{
+$final_virus_destiny = D_DISCARD;
+$final_spam_destiny = D_DISCARD;
+$warnvirussender = 0;
+$warnspamsender = 0;
+}}}
+
+You should also take a look at the other `$final_*_destiny` settings. Keep in mind that if you specify `D_PASS` as the final destiny for a type of mail, you effectively render per-user settings in Maia Mailguard useless for that type of item. For instance, if you set `$final_bad_header_destiny = D_PASS` (the default setting), there's no point in offering users the ability to be a `$bad_header_lover` or to `$bypass_header_checks`, since these will not override `D_PASS`. To make these settings meaningful and give users control over these things, choose any other final destiny (e.g. `D_BOUNCE`, `D_DISCARD`, or `D_REJECT`).
+
+The `$QUARANTINEDIR` setting is irrelevant to this version of Maia Mailguard, since quarantining now takes place entirely within the database, and not on the filesystem. Similarly, you can ignore the values of `$virus_quarantine_method`, `$spam_quarantine_method`, `$virus_quarantine_to`, and `$spam_quarantine_to`, since amavisd-maia does not use these values.
+
+Specify the information amavisd needs in order to connect to the database (where `passwd` is the `amavis` user's password):
+
+{{{
+@lookup_sql_dsn = ( ['DBI:mysql:maia:localhost', 'amavis', 'passwd'] );
+}}}
+
+Leave the `$sql_select_policy` and `$sql_select_white_black_list` variables commented out, since Maia takes care of these for you. Similarly, you probably want to comment out the `$whitelist_sender_*` and `$blacklist_sender_*` variables, since Maia uses a database table to store this information.
+
+If you want to include support for Blowfish encryption of quarantined/cached e-mail, you'll have to add a new `$key_file` setting to [wiki:AmavisConfigFile amavisd.conf] to tell it where to find your key file:
+
+{{{
+# Blowfish encryption key file (optional)
+$key_file = "$MYHOME/blowfish.key";
+}}}
+
+The `@local_domains_acl`, `%local_domains`, and `$local_domains_re` settings are observed as usual, but these are not strictly necessary with Maia Mailguard, since you can add domains to Maia using the administration interface, which effectively causes such domains to be treated as "local" for amavisd's purposes. You will want to do this for all of the domains you process mail for, even if those domains are downstream from your server.
+
+== 13. (Re)start amavisd-maia ==
+
+In case there's already an amavisd process running, you can make sure it's stopped and the new version started by typing:
+
+{{{
+[root]# /etc/rc.d/init.d/amavisd restart
+or [root]# /etc/rc.d/init.d/amavisd stop
+[root]# /etc/rc.d/init.d/amavisd start
+}}}
+
+Now amavisd should be connecting to your new database to look up user settings and whitelist/blacklist configurations, as well as logging quarantined items to the database. Check the amavisd logs to make sure of this. If you see errors in the logs about failures to connect to the database, double-check the `@lookup_sql_dsn` line in your [wiki:AmavisConfigFile /etc/amavisd.conf] file.
+
+If everything looks good in the log files, you can turn the `$log_level` back down to something less noisy (e.g. 0, 1, or 2). Reload (or restart) amavisd again to make this change take effect. Set up the init scripts as needed to run this at startup.
+
+== 14. Login and become the super-administrator ==
+
+Since in our example we installed the Maia Mailguard scripts in /maia relative to the document root of our web server, the scripts themselves should now be accessible at:
+
+{{{
+http://www.example.com/maia/
+}}}
+
+This is where you (and your users) will go most of the time to login to Maia Mailguard. This first time, however, you'll want to do something different in order to register yourself as the Maia Mailguard super-administrator. Do this by going to:
+
+{{{
+http://www.example.com/maia/login.php?super=register
+}}}
+
+You'll be presented to the login page as usual, but if you login successfully and no other user in the database currently has super- administrator privileges, you'll be assigned these privileges. You only have to do this once; after that, you can login just like any other user, and your super-administrator privileges will be granted to you automatically.
+
+'''NOTE:''' If you selected the `internal` authentication method, you'll need to get yourself a temporary username and password to login with. You can get this by visiting the internal-init.php page. This script will only run if there's no super-administrator defined yet:
+
+{{{
+http://www.example.com/maia/internal-init.php
+}}}
+
+The internal-init.php script will create an account for you, and you should received an e-mail from Maia that contains your temporary login credentials. Use these at this stage to login, and change them from your Settings Page.
+
+As super-administrator, you have all the privileges of administrators (e.g. "impersonating" other users, and deleting users), but also the ability to grant administrator privileges to others (and revoke them, if desired). Maia Mailguard only allows one super-administrator account, but there can be as many administrators as the super-administrator wants. The super-administrator cannot be deleted, and cannot have his privileges revoked by anyone else. Should the super-administrator ever wish to give up his privileges, he has to do so by logging in at:
+
+{{{
+http://www.example.com/maia/login.php?super=unregister
+}}}
+
+'''NOTE:''' after a super-administrator "unregisters" himself, the system effectively has no super-administrator, so the next user to login with the ?super=register argument will become the super-administrator. My suggestion, then, is to ensure that super-administrator privileges are handed off to someone else quickly--have the current super-administrator "unregister" only when the new candidate is ready to "register".
+
+== 15. Configure Maia Mailguard: System Configuration ==
+
+Now that you've logged in successfully as the super-administrator, you can finish configuring Maia Mailguard by going to the [Admin] link on the toolbar (the "key" icon in the default theme). The System Configuration link from there is where you'll find the rest of the system-wide settings you'll want to adjust before Maia Mailguard "goes live". The help file in the Administration Menu provides more detailed explanations of all the configuration options available to you there.
+
+== 16. Install any additional language packs ==
+
+Maia Mailguard ships with an English language pack pre-installed, but other languages and character sets are supported as well. These language packs no longer ship with the distribution, however they will be made available for download individually [http://www.maiamailguard.com/download.php here] as soon as they become available.
+
+Note that translations are all based on the English language versions, and are contributed by members of the user community on a volunteer basis. As such, Renaissoft can make no guarantees regarding the accuracy or the completeness of a given non-English translation. We certainly appreciate the efforts of these volunteer translators, and credit for their work is incorporated into each of their language packs. If you would like to contribute a translation, please contact [mailto:rjl@renaissoft.com Robert LeBlanc] for more details.
+
+== 17. Customise the help page ==
+
+A stock help page for end-users is provided in the help.php file, which describes the various settings and their implications, as well as how the whitelist/blacklist settings work. If you wish to modify this file to add some site-specific information, extra tips, etc., this is the time and place to do it.
+
+The text of the document itself can be found in the "localized" version of the help file (e.g. the English version is in ./locale/en/help.php). You can edit the text there if you have minor changes to make, but if you have major changes in mind, you can completely replace the help page itself without breaking anything.
+
+== 18. Customise the e-mail templates ==
+
+If you want to enable the sending of e-mail reminders to users when their quarantines/caches start to get large, you may also want to edit the reminder.tpl file or create your own new template, using some of these placeholders:
+
+||'''Placeholder'''||'''Expands To'''||
+||`%%VIRUSCOUNT%%`||Number of viruses in quarantine||
+||`%%SPAMCOUNT%%`||Number of suspected spam items in quarantine||
+||`%%BANNEDCOUNT%%`||Number of items with banned file attachments in quarantine||
+||`%%HEADERCOUNT%%`||Number of items with invalid mail headers in quarantine||
+||`%%VIRUSSIZE%%`||Total size of all viruses in quarantine||
+||`%%SPAMSIZE%%`||Total size of all suspected spam items in quarantine||
+||`%%BANNEDSIZE%%`||Total size of all items with banned file attachments in quarantine||
+||`%%HEADERSIZE%%`||Total size of all items with invalid mail headers in quarantine||
+||`%%MAIAURL%%`||URL users should visit to login to Maia Mailguard||
+||`%%ADMINEMAIL%%`||E-mail address of the mail administrator||
+||`%%EXPIRYPERIOD%%`||Number of days items are allowed to live in quarantine||
+||`%%OLDESTITEMTTL%%`||Number of days before the oldest quarantined item is deleted||
+||`%%OLDESTITEMAGE%%`||Age (in days) of the oldest item in quarantine||
+
+If you're using the internal authentication method, you'll also want to configure the newuser.tpl template, which Maia sends to new users when their accounts are created.
+
+The newuser.tpl template is used to send a new user his temporary login credentials, and supports the following placeholders:
+
+||'''Placeholder'''||'''Expands To'''||
+||`%%LOGIN%%`||The new user's temporary login name||
+||`%%PASSWORD%%`||The new user's temporary password||
+||`%%LOGINURL%%`||URL users should visit to login to Maia Mailguard||
+||`%%ADMINEMAIL%%`||E-mail address of the mail administrator||
+
+== 19. Schedule the maintenance scripts ==
+
+You'll want to schedule some of the provided maintenance scripts to run at regular intervals to do things like learn from (and optionally report) confirmed spam, as well as expiring old items from the quarantine and the ham cache, and sending e-mail reminders to users whose quarantines/caches are overflowing.
+
+It's important to note that these scripts must be run by the `amavis` user, due to the security precautions we took earlier, so these scheduled jobs should be added to the `amavis` user's crontab, and not `root`'s.
+
+[wiki:process-quarantine.pl process-quarantine.pl] should be run about once per hour, to train your Bayes database and report any spam your users have confirmed.
+
+[wiki:stats-snapshot.pl stats-snapshot.pl] should be run at the beginning of every hour, to take a snapshot of your stats table and update certain counters that are used to generate graphical charts.
+
+[wiki:expire-quarantine-cache.pl expire-quarantine-cache.pl] should be run once per day, to expire unconfirmed spam and cached ham that has exceeded your specified age threshold.
+
+[wiki:send-quarantine-reminders.pl send-quarantine-reminders.pl] should be run once per week or so, to remind neglectful users to check their quarantines and ham caches if they exceed your size or item count threshold.
+
+[wiki:send-quarantine-digests.pl send-quarantine-digests.pl] should be run once every 5 or 10 minutes, to check to see whether any users have requested e-mail digests of their quarantine contents. The more often you run this script, the more granularity you offer your users (e.g. running the script every minute offers a scheduling resolution of one minute, etc.), but at the cost of keeping the server busier.
+
+== 20. Delete the admin subdirectory ==
+
+The PHP scripts installed earlier included a number of administration scripts in the admin subdirectory. Once you've got Maia Mailguard up and running properly, you no longer need these scripts, and should delete that subdirectory and its contents as a security precaution, so that web visitors cannot access those scripts.
+
+== 21. Join the Maia-Users mailing list ==
+
+Support for Maia Mailguard is handled on the [wiki:MaiaMailingLists Maia-Users mailing list]. That's where you can get your questions answered and find out about any known bugs in the current release, along with workarounds and patches. If you don't want to subscribe to the list, there are archives available as well, but if you want to post to the list you have to subscribe first.
+
+== 22. Educate your users ==
+
+Maia Mailguard quarantine management features offer users some control over how their mail gets scanned and/or filtered. However, Maia Mailguard only offers these features to users who have logged in (and therefore registered themselves in the database), so it's important that you inform your users about the new system you've installed, and how to use it. Point your users to:
+
+{{{
+http://www.example.com/mail/
+}}}
+
+(or whatever base URL you chose to install Maia Mailguard scripts at), and encourage them to contact you with any questions they may have.
+
+== 23. Contribute to the project ==
+
+The Maia Mailguard project, like many free and open source projects, is the work of volunteers who contribute their time and effort to produce something that others can benefit from. Without the contributions of volunteer programmers, testers, financial sponsors, and license purchasers, a project like this could never survive, much less evolve.
+
+
+

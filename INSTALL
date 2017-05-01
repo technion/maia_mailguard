@@ -1,0 +1,14 @@
+This initial release of maia mailguard 1.0.4r targets centos 7.
+
+To install on Centos/RHEL 7, simply run:
+
+        install-centos7.sh
+
+In general, there will be scripts for other distros such that one can say:
+
+        install-<distro>.sh
+
+Until your distro is listed, you may install manually
+
+Note - It will take some time to complete, depending on bandwidth and CPU
+

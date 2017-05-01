@@ -1,0 +1,188 @@
+###################################################################
+#           Maia Mailguard Script Configuration File              #
+#                                                                 #
+# This file (/etc/maia.conf) contains configuration information   #
+# used by Maia Mailguard's Perl maintenance scripts.              #
+###################################################################
+
+# Configure your Maia database DSN here
+$dsn = 'DBI:mysql:maia:localhost:3306';
+
+# Your Maia database user's login name
+$username = 'maia';
+
+# Your Maia database user's password
+$password = '__PASSWORD__';
+
+# The directory where Maia's Perl scripts can be found.
+$script_dir = '/var/lib/maia/scripts';
+
+# Location of your sa-learn script
+$sa_learn = '/usr/bin/sa-learn';
+
+# Address rewriting type [0..5] (see config.php)
+$address_rewriting_type = 0;
+
+# Routing domain (see config.php)
+$routing_domain = '';
+
+# Authentication method (see config.php)
+$auth_method = 'internal';
+
+# Preserve the case of usernames in e-mail addresses
+$preserve_case = 0;
+
+
+### load-sa-rules.pl
+
+# The load-sa-rules script tries to find certain important rules
+# directories on its own, and usually it does a pretty good job,
+# but if it fails to find your rules directories, you can tell it
+# explicitly where to look by overriding the search here.  Setting
+# these to "undef" tells load-sa-rules to find the directories
+# on its own (recommended).
+
+# The directory where SpamAssassin's local.cf file can be found.
+#$local_cf_dir = '/etc/mail/spamassassin';
+#$local_cf_dir = '/etc/spamassassin';
+$local_cf_dir = undef;  # default: let the script find it
+
+# The directory where SpamAssassin's core rules can be found.
+# If you wish to specify the directory yourself, you can use the 
+# %%VERSION%% macro to replace the actual SpamAssassin version number.
+#$system_rules_dir = '/usr/share/spamassassin';
+#$system_rules_dir = '/var/lib/spamassassin/%%VERSION%%';  # sa-update
+$system_rules_dir = undef;  # default: let the script find it
+
+# The directory where your amavis user's user_prefs file can be found.
+#$user_rules_dir = '/var/lib/maia/.spamassassin';
+#$user_rules_dur = '~/.spamassassin';
+$user_rules_dir = undef;  # default: let the script find it
+
+
+### process-quarantine.pl
+
+# Location to write the lock/PID files (must be writeable by your
+# amavis user)
+$pid_dir = '/var/run/maia/';
+
+# Set the level of detail that should be logged
+# Valid settings: 0 or 'none'
+#                 1 or 'error'
+#                 2 or 'warn'
+#                 3 or 'info'
+#                 4 or 'debug'
+#                 5 or 'debug-worker'
+#                 6 or 'debug-email'
+#                 7 or 'debug-sa-info'
+#                 8 or 'debug-sa-all'
+
+$pq_log_level = 'info';
+
+# Location to write the log files (must be writeable by your
+# maia user).
+#$log_dir = '/dev/null';  # no logging, implies $log_level=0
+#$log_dir = 'console';    # log to console (i.e. STDOUT)
+
+$log_dir = '/var/log/maia';
+
+# Number of worker threads to start in parallel
+# Consider the number of available processing cores,
+# whether Hyper-Threading is available and enabled,
+# and the amount of available system resources the
+# process-quarantine script should be allowed to
+# consume.  Adjust as necessary.
+
+$workers = 10;
+
+# Location of your encryption key file, or undef to disable
+#$key_file = '/var/lib/maia/blowfish.key';
+$key_file = undef;
+
+# Items larger than this size (in bytes) will not be learned/reported.
+$default_max_size = 512*1024;
+
+# Train the Bayes database?
+#    0 = no
+#    1 = yes (same as --learn)
+$learning_options = 1;
+
+# If Bayes training is enabled, automatically learn items
+# with extreme scores, even without user confirmation.
+# Set these values conservatively, or undef to disable.
+
+$autolearn_ham_threshold = undef;   # e.g. -5
+$autolearn_spam_threshold = undef;  # e.g. 10
+
+# If reporting is enabled, automatically report items
+# with scores above this level, even without user confirmation.
+# Set this value VERY conservatively, or undef to disable.
+# WARNING: automated reporting of spam without human confirmation
+#          should only be considered when your filter is
+#          well-trained and the reporting threshold is high
+#          enough to exceed your false positive rate.  False
+#          reports will impact your reputation as a reporter,
+#          so use this feature with caution!
+
+$autoreport_spam_threshold = undef; # e.g. 20
+
+# Reporting options (add values together as desired):
+#    0 = none (don't report spam)
+#    1 = report to Razor
+#    2 = report to Pyzor
+#    4 = report to DCC
+#    8 = report to SpamCop
+#$report_options = 0;
+$report_options = 1 + 2 + 4 + 8;
+
+
+### expire-quarantine-cache.pl
+
+# Mail types to expire (add values together as desired):
+#    0 = none (don't expire anything)
+#    1 = expire Suspected Non-Spam
+#    2 = expire Suspected Spam
+#    4 = expire Viruses/Malware
+#    8 = expire items with Invalid Mail Headers
+#   16 = expire items with Banned File Attachments
+#   32 = expire Confirmed Non-Spam
+#   64 = expire Confirmed Spam
+$mail_types = 1 + 2 + 4 + 8 + 16;
+
+
+### send-quarantine-digests.pl
+
+# Base URL to Maia's PHP scripts
+$base_url = 'http://example.com/';
+
+# Template directory
+$template_dir = '/etc/maia/templates/';
+
+# How you want the digest sorted (choose one per cache type)
+# (note: non spam/ham caches don't have score to sort by)
+# options are:
+# %sort = "score DIRECTION"
+#       = "received_date DIRECTION"
+#       = "recipient_id DIRECTION"
+# Where DIRECTION is ASC or DESC
+%sort = (
+            'ham'   => "score DESC",  # puts the high scores at the top
+            'spam'  => "score ASC",   # puts the low scores at the top
+            'virus' => "received_date DESC",
+            'attachment' => "received_date DESC",
+            'header'  => "received_date DESC",
+);
+
+# Heading titles for each section of the digest report
+$titles = { 'spam'        =>  "Spam Quarantine",
+            'virus'       =>  "Virus Quarantine",
+            'attachment' =>  "Banned File Attachments",
+            'header'  =>  "Invalid Email Headers",
+            'ham'         =>  "Delivered Email"
+};
+
+# The order of the sections of the digest report
+# Valid elements are 'spam', 'ham', 'virus', attachment', and 'header'
+# Omit any of these elements to leave them out of the report
+
+@report_order = ('spam','ham','virus','attachment','header');

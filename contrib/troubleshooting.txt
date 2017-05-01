@@ -1,0 +1,23 @@
+In some installs everything seemed to work except for the ability of users to
+log in (typically the user created by internal-init.php, but changing the 
+password with a mysql statement didn't work either, nor did copying an
+encrypted password field from the same user on an identical machine where
+maia mailguard was working normally.
+
+The error was of the form:
+
+Login for user failed. ( Possible case mixup rejected. Ask your system administrator about upper/lower case issues. )
+
+Many things were tried, to no effect, dropping indexes per 
+  http://comments.gmane.org/gmane.mail.virus.maiamailguard/15106
+etc -
+
+A quick and dirty solution was found:
+drop the maia database, recreate it with the maia-mysql.sql file, and
+run internal-init.php: success.
+
+The reason it happened was that the user created with intrnal-init.php was
+deleted from the maia_users table, damaging the integrity of the schema. 
+If a user must be removed, use maiadbtool.pl, which will maintain the
+integrity of the database. 
+

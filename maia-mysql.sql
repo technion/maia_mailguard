@@ -174,7 +174,7 @@ CREATE TABLE maia_config (
    reminder_threshold_size		int unsigned DEFAULT '500000', -- bytes
    reminder_template_file		varchar(255) DEFAULT 'reminder.tpl',
    reminder_login_url			varchar(255),
-   newuser_template_file		varchar(255) DEFAULT 'newuser.tpl',
+   newuser_template_file		varchar(255) DEFAULT '/var/lib/maia/templates/newuser.tpl',
    smtp_server				varchar(255) DEFAULT 'localhost',
    smtp_port				int unsigned DEFAULT '10025',
    currency_label			varchar(15) DEFAULT '$',
@@ -243,7 +243,7 @@ CREATE TABLE maia_users (
    language			varchar(10) DEFAULT 'en' NOT NULL,
    charset			varchar(20) DEFAULT 'ISO-8859-1' NOT NULL,
    spamtrap			char(1) DEFAULT 'N' NOT NULL, -- 'Y', 'N'
-   password			varchar(128), -- scrypt()
+   password			varchar(32), -- 32-byte MD5 hash
    auto_whitelist		char(1) DEFAULT 'Y' NOT NULL, -- 'Y', 'N'
    items_per_page		int unsigned DEFAULT '50' NOT NULL,
    spam_quarantine_sort		char(2) DEFAULT 'XA' NOT NULL, -- [XDFS][AD]
@@ -252,7 +252,7 @@ CREATE TABLE maia_users (
    attachment_quarantine_sort	char(2) DEFAULT 'DA' NOT NULL, -- [DFS][AD]
    ham_cache_sort		char(2) DEFAULT 'XD' NOT NULL, -- [XDFS][AD]
    discard_ham			char(1) DEFAULT 'N' NOT NULL, -- 'Y', 'N'
-   theme_id             int unsigned DEFAULT '1' NOT NULL,
+   theme_id             int unsigned DEFAULT '2' NOT NULL,
    quarantine_digest_interval  int unsigned DEFAULT '0' NOT NULL, 
    last_digest_sent   datetime, 
    truncate_subject  int unsigned DEFAULT '20' NOT NULL, 

@@ -360,7 +360,6 @@
 	    return false;      // ticket #335
 	}
         global $dbh;
-        require_once('maia_db/scrypt.php');
 
         $email = "";
         $testpass = md5($pass);
@@ -394,13 +393,6 @@
                 return false;
             }
         }
-        // Only reached if scrypt password
-        if(Password::check($pass, $userpass)) {
-            return $email;
-        } else {
-            return false;
-        }
-
     }
 
 
