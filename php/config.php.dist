@@ -110,7 +110,7 @@
 
     // Supported databases include:
     //
-    // "mysql"   (MySQL)
+    // "mysqli"   (MySQL)
     // "pgsql"   (PostgreSQL)
     // "ibase"   (InterBase)
     // "dbase"   (dBase)
@@ -127,9 +127,9 @@
     // http://pear.php.net/manual/en/package.database.db.intro-dsn.php
 
     //$maia_sql_dsn = "dbtype://dbuser:passwd@tcp(hostname:port)/maia";
-    $maia_sql_dsn = "mysql://maia:passwd@tcp(localhost:3306)/maia";
-    //$maia_sql_dsn = "mysql://dbuser:passwd@unix(/var/tmp/mysql.sock)/maia";
-    //$maia_sql_dsn = "mysql://dbuser:passwd/maia";
+    $maia_sql_dsn = "mysqli://maia:passwd@tcp(localhost:3306)/maia";
+    //$maia_sql_dsn = "mysqli://dbuser:passwd@unix(/var/tmp/mysql.sock)/maia";
+    //$maia_sql_dsn = "mysqli://dbuser:passwd/maia";
     
     // To pass more options into DB:connect, set them in this array
     // For more details, see:
