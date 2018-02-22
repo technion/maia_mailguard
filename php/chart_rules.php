@@ -115,7 +115,7 @@
     }
     
     // create the graph
-    $Graph =& Image_Graph::factory('graph', array(400, 300));
+    $Graph =& Image_Graph::factory('graph', array(800, 600));
     // add a TrueType font
     $Font =& $Graph->addNew('ttf_font', $chart_font);
     // set the font size to 11 pixels
@@ -147,9 +147,9 @@
 
     
     $select = "SELECT rule_name, rule_count " .
-              "FROM maia_sa_rules WHERE rule_count > 0 ORDER BY rule_count DESC, rule_name ASC LIMIT ".$out['limit'];
+              "FROM maia_sa_rules WHERE rule_count > 0 ORDER BY rule_count DESC, rule_name ASC LIMIT ?";
     $sth = $dbh->prepare($select);
-    $res = $sth->execute();
+    $res = $sth->execute($out['limit']);
     if (PEAR::isError($sth)) {
         die($sth->getMessage());
     }
@@ -158,21 +158,21 @@
     $values = array();
     if($res->numRows()) {
         $sum = 0;
-        while ($row = $sth->fetchrow()) {
+        while ($row = $res->fetchRow()) {
             $Dataset->addPoint($row["rule_name"], $row["rule_count"], $row["rule_name"]);
             $keys[] = $row["rule_name"];
             $values[] = $row["rule_count"];
             $sum += $row["rule_count"];
         }
-        $select = "SELECT (SUM(rule_count)-".$sum.") AS rest FROM maia_sa_rules";
+        $select = "SELECT (SUM(rule_count)-?) AS rest FROM maia_sa_rules";
 
         $sth = $dbh->prepare($select);
-        $res = $sth->execute();
+        $res = $sth->execute($sum);
         if (PEAR::isError($sth)) {
-            die($sth->getMessage());
+            die($res->getMessage());
         }
         if($res->numRows()) {
-            $row = $sth->fetchrow();
+            $row = $res->fetchrow();
             if(0 && $row["rest"]) {
                 $Dataset->addPoint("Rest", $row["rest"], "Rest");
                 $keys[] = "Rest";
