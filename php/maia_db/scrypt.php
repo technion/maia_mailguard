@@ -142,7 +142,8 @@ abstract class Password
             $salt = str_replace(array('+', '$'), array('.', ''), base64_encode($salt));
         }
 
-        $hash = scrypt($password, $salt, $N, $r, $p, self::$_keyLength);
+        #$hash = scrypt($password, $salt, $N, $r, $p, self::$_keyLength);
+        $hash = crypt($password, $salt);
 
         return $N . '$' . $r . '$' . $p . '$' . $salt . '$' . $hash;
     }
@@ -174,7 +175,8 @@ abstract class Password
             return false;
         }
 
-        $calculated = scrypt($password, $salt, $N, $r, $p, self::$_keyLength);
+        #$calculated = scrypt($password, $salt, $N, $r, $p, self::$_keyLength);
+        $calculated = crypt($password, $salt);
 
         // Use compareStrings to avoid timeing attacks
         return self::compareStrings($hash, $calculated);

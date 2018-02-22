@@ -173,8 +173,8 @@
                      "total_spam_items as s, total_fp_items as fp, total_fn_items as fn, total_virus_items as v, total_bad_header_items as bh, total_banned_file_items as bf, " .
                      "total_oversized_items as os " .
               "FROM maia_stats " .
-              "WHERE user_id = ?";
-      $sth = $dbh->query($select, $id);
+              "WHERE user_id = $id";
+      $sth = $dbh->query($select);
     }
     $items = array();
     if($row = $sth->fetchrow()) {
