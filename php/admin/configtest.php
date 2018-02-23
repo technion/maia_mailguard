@@ -259,12 +259,12 @@
       }
       print_row("Multibyte String Support", $result, $status);
 
-     // scrypt support
-     if(function_exists( 'scrypt')) {
-         $result = "scrypt() support available";
+     // crypt support
+     if(function_exists( 'crypt') || function_exists( 'password_hash' )) {
+         $result = "crypt support available";
          $status = OK;
       } else {
-         $result = "scrypt() not available. Use \"pecl install scrypt\"";
+         $result = "crypt not available.";
          $status = ERROR;
       }
       print_row("scrypt() Support", $result, $status);
