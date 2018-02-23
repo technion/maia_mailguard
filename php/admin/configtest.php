@@ -260,7 +260,7 @@
       print_row("Multibyte String Support", $result, $status);
 
      // crypt support
-     if(function_exists( 'crypt') || function_exists( 'password_hash' )) {
+     if(function_exists( 'scrypt' ) || function_exists( 'crypt') || function_exists( 'password_hash' )) {
          $result = "crypt support available";
          $status = OK;
       } else {
