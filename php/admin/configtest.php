@@ -261,10 +261,14 @@
 
      // crypt support
      if(function_exists( 'scrypt' ) || function_exists( 'crypt') || function_exists( 'password_hash' )) {
-         $result = "crypt support available";
+         if (function_exists( 'scrypt' )) { $result = "scrypt() support available"; }
+         elseif (function_exists( 'password_hash' )) { $result = "password_hash() support available"; }
+         elseif (function_exists( 'crypt' )) { $result = "crypt() support available"; }
          $status = OK;
       } else {
-         $result = "crypt not available.";
+         $result = "scrypt() not available. Use \"pecl install scrypt\". ";
+         $result.= "password_hash() not available. Requires PHP5.5+, ";
+         $result.= "crypt() not available. Requires PHP4+";
          $status = ERROR;
       }
       print_row("scrypt() Support", $result, $status);
