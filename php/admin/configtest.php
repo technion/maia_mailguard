@@ -145,7 +145,7 @@
     if (is_readable($smarty_base)){
       $dir = opendir($smarty_base); #open directory
       while ($f = readdir($dir)) { #read one file name
-        if (!preg_match("/^..$/",$f) && $f!=='.' && $f!=='..'){
+        if (!preg_match("/^..$/",$f) && $f!=='.' && $f!=='..' && is_dir($f)){
           if (is_writable($smarty_base . "/" . $f . "/compiled")) {
             continue;
           } else {
