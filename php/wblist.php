@@ -105,7 +105,7 @@
           $actiontext = $lang['text_remove_rule'];
           break;
       }
-      if ($_REQUEST['ajax'] == 'true') {
+      if (isset($_REQUEST['ajax']) && $_REQUEST['ajax'] == 'true') {
          ?>
           $('#viewmessage').html('<div class="messagebox"><?php echo htmlspecialchars($lang[$result]); ?></div>');
           $('#viewmessage div').effect("highlight", {
