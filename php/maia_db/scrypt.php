@@ -123,6 +123,9 @@ abstract class Password
      */
     public static function hash($password, $salt = false, $N = 16384, $r = 8, $p = 1)
     {
+        if ($salt === false)
+            $salt = self::generateSalt();
+
         if (function_exists( 'scrypt' )) {
             if ($N == 0 || ($N & ($N - 1)) != 0) {
                 throw new \InvalidArgumentException("N must be > 0 and a power of 2");
@@ -136,9 +139,7 @@ abstract class Password
                 throw new \InvalidArgumentException("Parameter r is too large");
             }
 
-            if ($salt === false) {
-                $salt = self::generateSalt();
-            } else {
+            if ($salt !== false) {
                 // Remove dollar signs from the salt, as we use that as a separator.
                 $salt = str_replace(array('+', '$'), array('.', ''), base64_encode($salt));
             }
@@ -152,7 +153,7 @@ abstract class Password
             return password_hash($password, PASSWORD_DEFAULT);
         }
 
-        return crypt($password);
+        return crypt($password,$salt);
 
     }
 
@@ -171,7 +172,7 @@ abstract class Password
             return false;
         }
 
-        $hcheck = 0;
+        $hcheck = false;
 
         if (function_exists( 'scrypt' )) {
             list ($N, $r, $p, $salt, $hash) = explode('$', $hash);
@@ -196,7 +197,7 @@ abstract class Password
             $hcheck = password_verify($password, $hash);
         }
 
-        if (!$hcheck) {
+        if (!$hcheck && function_exists( 'crypt' )) {
             $hcheck = (hash_equals($hash, crypt($password, $hash)));
         }
 	
