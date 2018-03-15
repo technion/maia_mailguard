@@ -92,8 +92,8 @@
     $sth->free();
     
     if ($enable_charts) {
-      $select = "SELECT charts FROM maia_users WHERE id=?";
-      $sth = $dbh->query($select,$euid);
+      $select = "SELECT charts FROM maia_users WHERE id=$euid";
+      $sth = $dbh->query($select);
       if ($row = $sth->fetchrow()) {
         $enable_charts = ($row["charts"] == 'Y');
       }

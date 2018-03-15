@@ -145,7 +145,7 @@
     if (is_readable($smarty_base)){
       $dir = opendir($smarty_base); #open directory
       while ($f = readdir($dir)) { #read one file name
-        if (!preg_match("/^..$/",$f) && $f!=='.' && $f!=='..'){
+        if (!preg_match("/^..$/",$f) && $f!=='.' && $f!=='..' && is_dir($f)){
           if (is_writable($smarty_base . "/" . $f . "/compiled")) {
             continue;
           } else {
@@ -259,12 +259,16 @@
       }
       print_row("Multibyte String Support", $result, $status);
 
-     // scrypt support
-     if(function_exists( 'scrypt')) {
-         $result = "scrypt() support available";
+     // crypt support
+     if(function_exists( 'scrypt' ) || function_exists( 'crypt') || function_exists( 'password_hash' )) {
+         if (function_exists( 'scrypt' )) { $result = "scrypt() support available"; }
+         elseif (function_exists( 'password_hash' )) { $result = "password_hash() support available"; }
+         elseif (function_exists( 'crypt' )) { $result = "crypt() support available"; }
          $status = OK;
       } else {
-         $result = "scrypt() not available. Use \"pecl install scrypt\"";
+         $result = "scrypt() not available. Use \"pecl install scrypt\". ";
+         $result.= "password_hash() not available. Requires PHP5.5+, ";
+         $result.= "crypt() not available. Requires PHP4+";
          $status = ERROR;
       }
       print_row("scrypt() Support", $result, $status);

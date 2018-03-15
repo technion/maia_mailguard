@@ -123,28 +123,38 @@ abstract class Password
      */
     public static function hash($password, $salt = false, $N = 16384, $r = 8, $p = 1)
     {
-        if ($N == 0 || ($N & ($N - 1)) != 0) {
-            throw new \InvalidArgumentException("N must be > 0 and a power of 2");
-        }
-
-        if ($N > PHP_INT_MAX / 128 / $r) {
-            throw new \InvalidArgumentException("Parameter N is too large");
-        }
-
-        if ($r > PHP_INT_MAX / 128 / $p) {
-            throw new \InvalidArgumentException("Parameter r is too large");
-        }
-
-        if ($salt === false) {
+        if ($salt === false)
             $salt = self::generateSalt();
-        } else {
-            // Remove dollar signs from the salt, as we use that as a separator.
-            $salt = str_replace(array('+', '$'), array('.', ''), base64_encode($salt));
+
+        if (function_exists( 'scrypt' )) {
+            if ($N == 0 || ($N & ($N - 1)) != 0) {
+                throw new \InvalidArgumentException("N must be > 0 and a power of 2");
+            }
+
+            if ($N > PHP_INT_MAX / 128 / $r) {
+                throw new \InvalidArgumentException("Parameter N is too large");
+            }
+
+            if ($r > PHP_INT_MAX / 128 / $p) {
+                throw new \InvalidArgumentException("Parameter r is too large");
+            }
+
+            if ($salt !== false) {
+                // Remove dollar signs from the salt, as we use that as a separator.
+                $salt = str_replace(array('+', '$'), array('.', ''), base64_encode($salt));
+            }
+
+            $hash = scrypt($password, $salt, $N, $r, $p, self::$_keyLength);
+
+            return $N . '$' . $r . '$' . $p . '$' . $salt . '$' . $hash;
         }
 
-        $hash = scrypt($password, $salt, $N, $r, $p, self::$_keyLength);
+        if (function_exists( 'password_hash' )) {
+            return password_hash($password, PASSWORD_DEFAULT);
+        }
 
-        return $N . '$' . $r . '$' . $p . '$' . $salt . '$' . $hash;
+        return crypt($password,$salt);
+
     }
 
     /**
@@ -162,22 +172,36 @@ abstract class Password
             return false;
         }
 
-        list ($N, $r, $p, $salt, $hash) = explode('$', $hash);
+        $hcheck = false;
 
-        // No empty fields?
-        if (empty($N) or empty($r) or empty($p) or empty($salt) or empty($hash)) {
-            return false;
+        if (function_exists( 'scrypt' )) {
+            list ($N, $r, $p, $salt, $hash) = explode('$', $hash);
+
+            // No empty fields?
+            if (empty($N) or empty($r) or empty($p) or empty($salt) or empty($hash)) {
+                return false;
+            }
+
+            // Are numeric values numeric?
+            if (!is_numeric($N) or !is_numeric($r) or !is_numeric($p)) {
+                return false;
+            }
+
+            $calculated = scrypt($password, $salt, $N, $r, $p, self::$_keyLength);
+
+            // Use compareStrings to avoid timeing attacks
+            $hcheck = self::compareStrings($hash, $calculated);
         }
 
-        // Are numeric values numeric?
-        if (!is_numeric($N) or !is_numeric($r) or !is_numeric($p)) {
-            return false;
+        if (!$hcheck && function_exists('password_verify')) {
+            $hcheck = password_verify($password, $hash);
         }
 
-        $calculated = scrypt($password, $salt, $N, $r, $p, self::$_keyLength);
-
-        // Use compareStrings to avoid timeing attacks
-        return self::compareStrings($hash, $calculated);
+        if (!$hcheck && function_exists( 'crypt' )) {
+            $hcheck = (hash_equals($hash, crypt($password, $hash)));
+        }
+	
+        return $hcheck;
     }
 
     /**
