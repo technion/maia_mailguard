@@ -14,3 +14,10 @@ There are some new requirements on PHP modules, these are easiest identified by 
 This fork was created to resolve specific issues and for the purpose of providing the community a place to send patches when the mainline was unresponsive.
 
 I am happy to assist with ongoing merging however please note there is no intent in writing new features for this application.
+
+
+# Notes
+
+If login stops working for correct credentials try clearing your browser cookies first.
+
+
