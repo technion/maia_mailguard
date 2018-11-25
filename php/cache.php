@@ -551,7 +551,7 @@ class MessageCache {
                 $rows[$count]['score'] = $row['score'];
  
                     $to_list = explode(" ", $row["envelope_to"]);
-                    $rectmp = "";
+                    $rectmp = array();
                     foreach ($to_list as $recipient) {
                         if (isset($personal_addresses[$recipient]) || $domain_default) {
                           $rectmp[] = $recipient;
