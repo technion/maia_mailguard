@@ -111,9 +111,12 @@
               "FROM maia_config WHERE id = 0";
 
     $sth = $dbh->prepare($select);
-    $res = $sth->execute();
     if (PEAR::isError($sth)) {
-        die($sth->getMessage());
+        die($sth->getMessage() . ": " . $sth->getUserInfo());
+    }
+    $res = $sth->execute();
+    if (PEAR::isError($res)) {
+        die($res->getMessage() . ": " . $res->getUserInfo());
     }
     if ($row = $res->fetchrow()) {
         $banner_title = $row["banner_title"];
@@ -165,6 +168,11 @@
     $res = $sth->execute(array($uid));
     if (PEAR::isError($sth)) {
         die($sth->getMessage());
+    }
+    if (PEAR::isError($res)) {
+        echo "<pre>";
+        var_dump($res);
+        die($res->getMessage() . ": " . $res->getUserInfo());
     }
     if ($row = $res->fetchrow()) {
         $path = $row['path'];

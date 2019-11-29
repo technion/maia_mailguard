@@ -90,7 +90,8 @@
     // Establish a database connection.
     $dbh = MDB2::connect($maia_sql_dsn, $maia_sql_connect_options);
     if (MDB2::isError($dbh)) {
-        die($lang['error_connect'] . $dbh->getMessage());
+        require_once ("./locale/$default_display_language/db.php");
+        die($lang['error_connect'] . $dbh->getUserInfo());
     }
     $dbh->setFetchMode(MDB2_FETCHMODE_ASSOC);
 
