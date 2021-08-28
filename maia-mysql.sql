@@ -713,7 +713,7 @@ INSERT INTO maia_languages (abbreviation, language_name) VALUES ('bo', 'Tibetan'
 INSERT INTO maia_languages (abbreviation, language_name) VALUES ('br', 'Brezhoneg');
 INSERT INTO maia_languages (abbreviation, language_name) VALUES ('ca', 'Català');
 INSERT INTO maia_languages (abbreviation, language_name) VALUES ('co', 'Corsican');
-INSERT INTO maia_languages (abbreviation, language_name) VALUES ('cs', '&#x010C;etina');
+INSERT INTO maia_languages (abbreviation, language_name) VALUES ('cs', '&#x010C;e&#x0161;tina');
 INSERT INTO maia_languages (abbreviation, language_name) VALUES ('cy', 'Cymraeg');
 INSERT INTO maia_languages (abbreviation, language_name) VALUES ('da', 'Dansk');
 INSERT INTO maia_languages (abbreviation, language_name) VALUES ('de', 'Deutsch');
@@ -765,7 +765,7 @@ INSERT INTO maia_languages (abbreviation, language_name) VALUES ('lb', 'Lëtzebu
 INSERT INTO maia_languages (abbreviation, language_name) VALUES ('ln', 'Lingala');
 INSERT INTO maia_languages (abbreviation, language_name) VALUES ('lo', 'Laothian');
 INSERT INTO maia_languages (abbreviation, language_name) VALUES ('lt', 'Lietuvi&#x0173;');
-INSERT INTO maia_languages (abbreviation, language_name) VALUES ('lv', 'Latvieu');
+INSERT INTO maia_languages (abbreviation, language_name) VALUES ('lv', 'Latvie&#x0161;u');
 INSERT INTO maia_languages (abbreviation, language_name) VALUES ('mg', 'Malagasy');
 INSERT INTO maia_languages (abbreviation, language_name) VALUES ('mi', 'Maori');
 INSERT INTO maia_languages (abbreviation, language_name) VALUES ('mk', '&#x041C;&#x0430;&#x043A;&#x0435;&#x0434;&#x043E;&#x043D;&#x0441;&#x043A;&#x0438;');
