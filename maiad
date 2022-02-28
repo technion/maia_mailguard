@@ -3823,7 +3823,9 @@ sub maia_store_mail($$$$$@) {
        if (validate($htype, '^Subject$', 'i')) {
           $subject .= $htext;
        }
-       if (validate($htype, '^Content-Type$', 'i') && validate($htext, 'charset=(.+)')) {
+       if (validate($htype, '^Content-Type$', 'i') && validate($htext, 'charset="(.+)"')) {
+          $document_charset = validate($htext, 'charset="(.+)"');
+       } elsif (validate($htype, '^Content-Type$', 'i') && validate($htext, 'charset=(.+)')) {
           $document_charset = validate($htext, 'charset=(.+)');
        }
     }
@@ -3832,7 +3834,7 @@ sub maia_store_mail($$$$$@) {
     $subject = untaint($subject);
     $sender = substr($sender, 0, 255) if length($sender) > 255;
     if ($document_charset ne "") {
-	from_to($contents, $document_charset, "UTF-8");
+	from_to($contents, $document_charset, 'UTF-8');
     }
 
     if (!$oversized) {
