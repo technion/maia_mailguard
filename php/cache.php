@@ -89,7 +89,7 @@ class MessageCache {
     var $rescued = 0;
     var $resent = 0;
     
-    function MessageCache($type, & $dbh, $dbtype, & $smarty) {
+    function __construct($type, & $dbh, $dbtype, & $smarty) {
         $this->smarty =& $smarty;
         $this->dbh =& $dbh;
         $this->dbtype = $dbtype;
@@ -401,7 +401,6 @@ class MessageCache {
     
     function render($euid) {
         global $lang, $sid, $msid, $offset, $message;
-        $magic_quotes = get_magic_quotes_gpc();
         $nothing_to_show = true;
         $offset = 0;
         $this->smarty->assign("msid", $msid);
@@ -547,7 +546,7 @@ class MessageCache {
                    }
                 }
                 $rows[$count]['received_date'] = $row["received_date"];
-                $rows[$count]['sender_email'] = $magic_quotes ? stripslashes($row["sender_email"]) : $row["sender_email"];
+                $rows[$count]['sender_email'] = $row["sender_email"];
                 $rows[$count]['score'] = $row['score'];
  
                     $to_list = explode(" ", $row["envelope_to"]);
@@ -559,7 +558,7 @@ class MessageCache {
                     }
                     $rows[$count]['recipient_email'] = $rectmp;
 
-           $subject = $magic_quotes ? stripslashes($row['subject']) : $row['subject'];
+           $subject = $row['subject'];
            if ($subject == "") {
               $subject = "(" . $lang['text_no_subject'] . ")";
            }else{

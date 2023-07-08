@@ -91,7 +91,7 @@
 
       $urladdr = $_SERVER['HTTP_HOST'] . implode('/', $tempPath3);
 
-      if ($urladdr{strlen($urladdr) - 1}== '/')
+      if ($urladdr[strlen($urladdr) - 1]== '/')
           define('URLADDR', 'http://' . $urladdr);
       else
           define('URLADDR', 'http://' . $urladdr . '/');
