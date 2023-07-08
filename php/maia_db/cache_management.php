@@ -172,7 +172,7 @@
         $update = "UPDATE maia_mail_recipients SET type = ?, token=" . $token_code  .
                 " WHERE recipient_id = ? AND mail_id IN (";
 
-        $update .= '?' . str_repeat(',?', count($mail_id) - 1);
+        $update .= '?' . str_repeat(',?', count((array)$mail_id) - 1);
 
         $update .= ")";
         $sth = $dbh->prepare($update);
