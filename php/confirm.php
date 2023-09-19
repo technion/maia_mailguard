@@ -177,7 +177,7 @@
         while ($row = $res->fetchRow())
         {
             $mail_id = $row["id"];
-            delete_mail_reference($euid, $mail_id);
+            delete_mail_reference($euid, array($mail_id));
             $deleted++;
         }
         if ($deleted > 0) {
