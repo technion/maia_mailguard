@@ -3823,8 +3823,8 @@ sub maia_store_mail($$$$$@) {
        if (validate($htype, '^Subject$', 'i')) {
           $subject .= $htext;
        }
-       if (validate($htype, '^Content-Type$', 'i') && validate($htext, 'charset="(.+)"')) {
-          $document_charset = validate($htext, 'charset="(.+)"');
+       if (validate($htype, '^Content-Type$', 'i') && validate($htext, 'charset="([^"]+)"')) {
+          $document_charset = validate($htext, 'charset="([^"]+)"');
        } elsif (validate($htype, '^Content-Type$', 'i') && validate($htext, 'charset=(.+)')) {
           $document_charset = validate($htext, 'charset=(.+)');
        }
