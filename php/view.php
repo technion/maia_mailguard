@@ -213,7 +213,7 @@
        if (!$raw) {
 
           // Try to decode the mail and display all of its parts.
-          $mail = new Mail_mimeDecode($contents)
+          $mail = new Mail_mimeDecode($contents);
           $args['include_bodies'] = true;
           $args['decode_bodies'] = true;
           $args['decode_headers'] = false;  // the inconv decoding will handle the headers
