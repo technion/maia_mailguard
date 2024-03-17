@@ -99,15 +99,15 @@
       unset($tempPath1, $tempPath2, $tempPath3, $urladdr);
       /*  Now ABSPATH and URLADDR are set.  */
 
-     ini_set('include_path',ini_get('include_path').':./libs:');  
-     require_once('Log.php');
-     require_once("config.php");
+      require "vendor/autoload.php";
+      require_once("Log.php");
+      require_once("config.php");
 
-     require_once ("constants.php");
-     require_once ("maia_log.php");
+      require_once ("constants.php");
+      require_once ("maia_log.php");
 
-     session_name(MAIA_SESSION);
-     session_set_cookie_params  ( 0,
+      session_name(MAIA_SESSION);
+      session_set_cookie_params  ( 0,
                                       dirname($_SERVER['PHP_SELF']),
                                       strpos($_SERVER['SERVER_NAME'], '.') ? $_SERVER['SERVER_NAME'] : false,
                                       !empty($_SERVER['HTTPS']));

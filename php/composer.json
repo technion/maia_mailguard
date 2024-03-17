@@ -1,0 +1,43 @@
+{
+    "name": "hexmode/maia",
+    "description": "web app",
+    "type": "project",
+    "require": {
+        "ext-xml": "*",
+        "ext-mbstring": "*",
+        "ext-iconv": "*",
+        "ext-bcmath": "*",
+        "ext-ldap": "*",
+        "ext-imap": "*",
+        "ext-gd": "*",
+        "smarty/smarty": "^3.1",
+        "pear/log": "^1.13",
+        "bondas83/mdb2_driver_mysqli": "dev-composer-loading",
+        "silverorange/mdb2": "dev-composer-loading",
+        "pear/net_smtp": "^1.8",
+        "pear/mail_mime": "^1.10",
+        "hexmode/mail_mimedecode": "dev-trunk"
+    },
+    "license": "GPL-2-or-later",
+    "authors": [
+        {
+            "name": "Mark A. Hershberger",
+            "email": "mah@nichework.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/hexmode/Mail_mimeDecode.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/hexmode/MDB2.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/hexmode/mdb2_driver_mysqli.git"
+        }
+    ]
+}
