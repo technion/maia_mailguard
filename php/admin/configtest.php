@@ -74,7 +74,10 @@
      *
      */
 
-    
+$autoload = realpath( dirname( __DIR__ ) . "/vendor/autoload.php" );
+if ( $autoload ) {
+    require_once $autoload;
+}
 
 
 
@@ -329,22 +332,28 @@
        $status = ERROR;
     } else {
        // include_once ("PEAR/Remote.php");      // PEAR::Remote
-        include_once ("PEAR/Config.php");    // PEAR::Registry
-
-    	$have_pear = true;
-    	$pear = new PEAR_Config();
-        $pear_reg = $pear->getRegistry();
-        $pear_info = $pear_reg->packageInfo("PEAR");
-        $pear_list = $pear_reg->listPackages();
-        $pear_version = is_array($pear_info["version"])?$pear_info["version"]["release"]:$pear_info["version"];
-        $result = $pear_version;
-        $status = OK;
+        @include_once ("PEAR/Config.php");    // PEAR::Registry
+        $pear_list = null;
+        if ( class_exists( "PEAR_Config" ) ) {
+            $pear = new PEAR_Config();
+            $have_pear = true;
+            $pear_reg = $pear->getRegistry();
+            $pear_info = $pear_reg->packageInfo("PEAR");
+            $pear_list = $pear_reg->listPackages();
+            $pear_version = is_array($pear_info["version"])?$pear_info["version"]["release"]:$pear_info["version"];
+            $result = $pear_version;
+            $status = OK;
+        } else {
+            $result = "Full PEAR not available.  Assuming this is composer's minimal PEAR.";
+            $status = WARN;
+        }
     }
     print_row("PEAR", $result, $status);
 
-
     // PEAR::Mail_Mime
+    $check_mime_decode = false;
     if ($have_pear) {
+
       if (!in_array("mail_mime", $pear_list)) {
         $result = "Not installed.  This PHP extension is required to decode " .
                   "MIME-structured e-mail.  Use <b>pear install Mail_Mime</b> to " .
@@ -361,45 +370,61 @@
           $status = ERROR;
         } elseif (version_compare($result,"1.5.0") < 0) {
           $status = OK;
-          $check_mime_decode = false;
         } else {
           $check_mime_decode = true;
           $status = OK;
         }
       }
     } else {
-        $result = "Requires PEAR";
-        $status = WARN;
+        @include "Mail/mime.php";
+        if ( class_exists( "Mail_mime" ) ) {
+            $result = "from composer";
+            $status = OK;
+            $check_mime_decode = true;
+        } else {
+            $result = "Try installing with composer";
+            $status = WARN;
+        }
     }
     print_row("PEAR::Mail_Mime", $result, $status);
 
-    // PEAR::Mail_Mime
+    // PEAR::Mail_Mimedecode
     if ($check_mime_decode) {
-      if (!in_array("mail_mimedecode", $pear_list)) {
-        $result = "Not installed.  This PHP extension is required to decode " .
-                  "MIME-structured e-mail.  Use <b>pear install Mail_mimeDecode</b> to " .
-                  "install this.  (Mail_mimeDecode was split from Mail_Mime at version 1.5.0)";
-        $status = ERROR;
-      } else {
-        $info = $pear_reg->packageInfo("Mail_mimeDecode");
-        $result = is_array($info["version"])?$info["version"]["release"]:$info["version"];
-        if (version_compare($result,"1.5.0") < 0) {
-          $version = $result;
-          $result = "Version $version installed.  Versions of Mail_Mime below 1.3.0  " .
-                    "are known to be buggy.  Use <b>pear upgrade Mail_Mime</b> to " .
-                    "upgrade to the latest version.";
-          $status = ERROR;
+        if ( $have_pear ) {
+            if (!in_array("mail_mimedecode", $pear_list)) {
+                $result = "Not installed.  This PHP extension is required to decode " .
+                        "MIME-structured e-mail.  Use <b>pear install Mail_mimeDecode</b> to " .
+                        "install this.  (Mail_mimeDecode was split from Mail_Mime at version 1.5.0)";
+                $status = ERROR;
+            } else {
+                $info = $pear_reg->packageInfo("Mail_mimeDecode");
+                $result = is_array($info["version"])?$info["version"]["release"]:$info["version"];
+                if (version_compare($result,"1.5.0") < 0) {
+                    $version = $result;
+                    $result = "Version $version installed.  Versions of Mail_Mime below 1.3.0  " .
+                            "are known to be buggy.  Use <b>pear upgrade Mail_Mime</b> to " .
+                            "upgrade to the latest version.";
+                    $status = ERROR;
+                } else {
+                    $status = OK;
+                }
+            }
         } else {
-          $status = OK;
+            @include "Mail/mimeDecode.php";
+            if ( class_exists( "Mail_mimeDecode" ) ) {
+                $result = "from composer";
+                $status = OK;
+            } else {
+                $result = "Try installing with composer";
+                $status = WARN;
+            }
         }
-      }
-      print_row("PEAR::Mail_mimeDecode", $result, $status);
     }
+    print_row("PEAR::Mail_mimeDecode", $result, $status);
 
-  function strip_tailing_slash($path) {
-    return rtrim($path, '/');
-  }
-
+    function strip_tailing_slash($path) {
+        return rtrim($path, '/');
+    }
 
     // PEAR::MDB2
     if ($have_pear) {
@@ -422,7 +447,6 @@
                 $result = $db_version = is_array($db_info["version"])?$db_info["version"]["release"]:$db_info["version"];
                 $result .= " MDB2.php installed as: " . $db_info['filelist']['MDB2.php']['installed_as'];
                 $db_type = $test_dbh->phptype;
-                
             }
           } else {
             $result = "MDB2.php installed in: " . $db_path . " but not in include path: " . get_include_path();
@@ -430,8 +454,22 @@
           }
         }
     } else {
-        $result = "Requires PEAR";
-        $status = WARN;
+        @include "MDB2.php";
+        if ( class_exists( "MDB2" ) ) {
+            $test_dbh = MDB2::connect($maia_sql_dsn);
+            if (MDB2::isError($test_dbh)) {
+                $result = "Could not connect to database.  Check the "
+                        . "$maia_sql_dsn setting in config.php.";
+                $status = ERROR;
+            } else {
+                $result = "from composer";
+                $status = OK;
+                $db_type = $test_dbh->phptype;
+            }
+        } else {
+            $result = "Try installing with composer";
+            $status = WARN;
+        }
     }
     print_row("PEAR::MDB2", $result, $status);
 
@@ -802,4 +840,3 @@
 
     print("</table></div>\n");
 
-?>
